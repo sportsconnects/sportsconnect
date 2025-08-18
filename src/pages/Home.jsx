@@ -1,12 +1,18 @@
-
+import Navbar from "../components/Navbar"
+import Hero from "../components/Hero"
+import HowItWorks from "../components/HowItWorks"
 
 
 
 export default function Home() {
     return (
-    <div className="text-center text-4xl"> 
+    <>
 
-        Welcome to home page
-    </div>
+    <Navbar />
+    <Hero />
+    <HowItWorks />
+
+ 
+    </>
     )
 }
