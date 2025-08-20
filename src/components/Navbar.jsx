@@ -17,7 +17,7 @@ export default function Navbar() {
                     <div className="flex items-center ml-20">
                             <img src={logo} alt="logo" className="w-20 h-20 object-contain" />
                             <div className="flex flex-col">
-                                <span className="text-3xl font-bold text-[#02A0FF]">SPORTS CONNECT</span>
+                                <span className="text-3xl font-bold text-[#0057B8]">SPORTS CONNECT</span>
                             </div>
                     </div>
 
