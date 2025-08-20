@@ -18,14 +18,14 @@ export default function HowItWorks() {
                         <h3 className="font-bold text-lg mb-3 text-[#0057B8]">
                             Create Your Profile
                         </h3>
-                        <p className="text-sm leading-relaxed text-[#0057B8]">Build a comprehensive profile with your stats, achievements, and highlight videos</p>
+                        <p className="text-sm leading-relaxed">Build a comprehensive profile with your stats, achievements, and highlight videos</p>
                     </div>
 
                     <div className="bg-gray-300 p-8 rounded-lg">
                         <h3 className="font-bold text-lg mb-3 text-[#0057B8]">
                             Get Discovered
                         </h3>
-                        <p className="text-sm leading-relaxed text-[#0057B8]">College recruiters search and find your profile based on your sport and skills</p>
+                        <p className="text-sm leading-relaxed">College recruiters search and find your profile based on your sport and skills</p>
                     </div>
                 </div>
 
@@ -41,14 +41,14 @@ export default function HowItWorks() {
                         <h3 className="font-bold text-lg mb-3 text-[#0057B8]">
                             Connect & Recruit
                         </h3>
-                        <p className="text-sm leading-relaxed text-[#0057B8]">Receive direct contact from interested recruiters and explore opportunities</p>
+                        <p className="text-sm leading-relaxed">Receive direct contact from interested recruiters and explore opportunities</p>
                     </div>
 
                     <div className="bg-gray-300 p-8 rounded-lg mb-10">
                         <h3 className="font-bold text-lg mb-3 text-[#0057B8]">
                             Secure Your Future
                         </h3>
-                        <p className="text-sm leading-relaxed text-[#0057B8]">Join teams and take the next step in your athletic and academic journey.</p>
+                        <p className="text-sm leading-relaxed">Join teams and take the next step in your athletic and academic journey.</p>
                     </div>
                 </div>
             </div>

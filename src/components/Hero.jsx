@@ -19,7 +19,7 @@ export default function Hero() {
                     <br />
                     <span className="bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent"> Recruiting Platform</span>
                 </h1>
-                <p className="max-w-3xl mx-auto mb-12 leading-relaxed">Connecting Ghana's most talented student-athletes with college recruiters worldwide.
+                <p className="max-w-3xl mx-auto mb-12 text-lg leading-relaxed">Connecting Ghana's most talented student-athletes with college recruiters worldwide.
           <br />
            Showcase your skills, build your profile, and take the next step in your athletic journey.
           </p>
