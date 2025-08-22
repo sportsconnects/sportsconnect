@@ -18,25 +18,27 @@ export default function FeaturedSports() {
     ];
 
     return (
-        <div className="bg-white px-6 py-16 text-center">
+        <div className="bg-white px-4 sm:px-6 py-12 text-center">
             <div className="max-w-7xl mx-auto">
-                <h2 className="font-bold text-2xl md:text-3xl lg:text-4xl mb-10">Featured Sports</h2>
+                <h2 className="font-bold text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-8">
+                    Featured Sports
+                </h2>
             </div>
 
             {/* Scrolling Container */}
             <div className="overflow-hidden">
-                <div className="flex animate-scroll gap-8 lg:gap-12">
+                <div className="flex animate-scroll gap-6 sm:gap-8 lg:gap-12">
                     {/* First set of sports */}
                     {sportsData.map((sport, index) => (
                         <div key={index} className="flex flex-col items-center flex-shrink-0">
-                            <div className="w-24 h-24 lg:w-30 lg:h-30 rounded-full flex items-center justify-center mb-4">
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full flex items-center justify-center mb-3">
                                 <img 
                                     src={sport.image} 
                                     alt={sport.alt}
-                                    className="w-full h-full rounded-full object-contain"
+                                    className="w-full h-full rounded-full object-cover"
                                 />
                             </div>
-                            <span className="text-sm lg:text-base font-medium text-[#0057B8]">
+                            <span className="text-xs sm:text-sm md:text-base font-medium text-[#0057B8]">
                                 {sport.name}
                             </span>
                         </div>
@@ -45,14 +47,14 @@ export default function FeaturedSports() {
                     {/* Duplicate set for seamless loop */}
                     {sportsData.map((sport, index) => (
                         <div key={`duplicate-${index}`} className="flex flex-col items-center flex-shrink-0">
-                            <div className="w-24 h-24 lg:w-30 lg:h-30 rounded-full flex items-center justify-center mb-4">
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full flex items-center justify-center mb-3">
                                 <img 
                                     src={sport.image} 
                                     alt={sport.alt}
-                                    className="w-full h-full rounded-full object-contain"
+                                    className="w-full h-full rounded-full object-cover"
                                 />
                             </div>
-                            <span className="text-sm lg:text-base font-medium text-[#0057B8]">
+                            <span className="text-xs sm:text-sm md:text-base font-medium text-[#0057B8]">
                                 {sport.name}
                             </span>
                         </div>
@@ -63,7 +65,7 @@ export default function FeaturedSports() {
             <style jsx>{`
                 @keyframes scroll {
                     0% {
-                        transform: translateX;
+                        transform: translateX(0);
                     }
                     100% {
                         transform: translateX(-50%);
@@ -71,7 +73,7 @@ export default function FeaturedSports() {
                 }
                 
                 .animate-scroll {
-                    animation: scroll 15s linear infinite;
+                    animation: scroll 20s linear infinite;
                 }
             `}</style>
         </div>
