@@ -3,7 +3,7 @@ import Home from "./pages/Home";
 import RecruiterSignUp from "./pages/RecruiterSignUp";
 import AthleteSignUp from "./pages/AthleteSignUp";
 import SignIn from "./pages/SignIn";
-
+import AthleteDashboard from "./pages/AthleteDashboard";
 
 
 const sportsConnect = createBrowserRouter([
@@ -11,6 +11,7 @@ const sportsConnect = createBrowserRouter([
 { path: '/recruitersignup', element: <RecruiterSignUp />},
 { path: '/athletesignup', element: <AthleteSignUp />},
 { path: '/signin', element: <SignIn />},
+{ path: '/athletedashboard', element: <AthleteDashboard />},
 ])
 
 
