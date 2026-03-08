@@ -3,7 +3,10 @@ import { Link } from "react-router";
 
 export default function Navbar() {
   return (
-    <nav className="bg-white border-b border-white relative">
+    <nav className="bg-white border-b border-white relative"
+    style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap');`}</style>
+      
       <div className="max-w-7xl mx-auto px-4 py-2">
         <div className="flex justify-between items-center">
           

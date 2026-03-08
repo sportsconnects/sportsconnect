@@ -18,7 +18,10 @@ export default function FeaturedSports() {
     ];
 
     return (
-        <div className="bg-white px-4 sm:px-6 py-12 text-center">
+        <div className="bg-white px-4 sm:px-6 py-12 text-center"
+        style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif" }}
+        >
+            <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap');`}</style>
             <div className="max-w-7xl mx-auto">
                 <h2 className="font-bold text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-8">
                     Featured Sports

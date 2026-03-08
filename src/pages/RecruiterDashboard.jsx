@@ -1,12 +1,26 @@
-
+import AthleteNavbar from "../components/AthleteNavbar"
 
 
 
 
 export default function RecruiterDashboard() {
     return(
-        <div>
-            Welcome to recruiter dashboard
-        </div>
+       <>
+
+       <AthleteNavbar />
+
+       <div className="min-h-screen bg-[#F6FEFA]">
+        
+
+       </div>
+       
+       
+       
+       
+       
+       
+       
+       
+       </>
     )
 }

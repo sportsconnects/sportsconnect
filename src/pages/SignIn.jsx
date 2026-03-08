@@ -8,11 +8,14 @@ export default function SignIn() {
         <>
             <Navbar />
 
-            <div className="min-h-screen bg-gray-200 flex items-center justify-center p-2 sm:p-4">
+            <div className="min-h-screen bg-gray-200 flex items-center justify-center p-2 sm:p-4"
+            style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
+            <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap');`}</style>
+            
                 <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 mt-4 sm:mt-10 mb-8 sm:mb-20 mx-2 sm:mx-0">
                     
                     {/* Right Section - Image */}
-                    <div className="block">
+                    <div className="hidden md:block">
                         <img
                             src={sc25}
                             alt="Signin image"
@@ -27,7 +30,7 @@ export default function SignIn() {
                                 <LogIn className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                             </div>
                             <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Welcome Back</h1>
-                            <p className="text-sm sm:text-base text-gray-600">Sign in to your TalentConnect account</p>
+                            <p className="text-sm sm:text-base text-gray-600">Sign in to your SportsConnect account</p>
                         </div>
 
                         {/* Radio Selection */}

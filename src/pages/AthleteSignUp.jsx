@@ -8,7 +8,10 @@ export default function AthleteSignUp() {
 
             <Navbar />
 
-            <div className="bg-gray-200 min-h-screen flex items-center justify-center p-2 sm:p-4">
+            <div className="bg-gray-200 min-h-screen flex items-center justify-center p-2 sm:p-4"
+            style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
+                <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap');`}</style>
+                
                 <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8 w-full max-w-md mt-4 sm:mt-10 mb-4 sm:mb-10 mx-2 sm:mx-0">
                     <div className="text-center mb-6 sm:mb-8">
                         <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-blue-500 rounded-full mb-3 sm:mb-4">

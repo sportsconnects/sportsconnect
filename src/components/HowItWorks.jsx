@@ -3,7 +3,10 @@ import sc15 from "../assets/images/sc15.png";
 
 export default function HowItWorks() {
   return (
-    <div className="bg-[#F3FEF9] px-4 sm:px-6 py-12 sm:py-16 text-center">
+    <div className="bg-[#F3FEF9] px-4 sm:px-6 py-12 sm:py-16 text-center"
+    style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif" }}
+    >
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap');`}</style>
       {/* Header */}
       <div className="max-w-7xl mx-auto">
         <h2 className="font-bold text-2xl sm:text-3xl lg:text-4xl mb-6 sm:mb-10">
