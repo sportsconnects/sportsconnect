@@ -8,6 +8,16 @@ import RecruiterDashboard from "./pages/RecruiterDashboard";
 import AthleteExplore from "./pages/athlete-dashboard/Explore";
 import AthleteRecruiters from "./pages/athlete-dashboard/Recruiters";
 import AthleteProfile from "./pages/athlete-dashboard/Profile";
+import AthletePost from "./pages/athlete-dashboard/Post";
+import AthleteSettings from "./pages/athlete-dashboard/Settings";
+import AthleteMessages from "./pages/athlete-dashboard/Messages";
+
+// Recruiter Dashboard pages
+import RecruiterAthletes from "./pages/recruiters-dashboard/Athletes";
+import RecruiterShortList from "./pages/recruiters-dashboard/ShortList";
+import RecruiterMessages from "./pages/recruiters-dashboard/Messages";
+import RecruiterProfile from "./pages/recruiters-dashboard/Profile";
+import RecruiterSettings from "./pages/recruiters-dashboard/Settings";
 
 
 const sportsConnect = createBrowserRouter([
@@ -15,11 +25,26 @@ const sportsConnect = createBrowserRouter([
 { path: '/recruitersignup', element: <RecruiterSignUp />},
 { path: '/athletesignup', element: <AthleteSignUp />},
 { path: '/signin', element: <SignIn />},
+
+// Athlete Dashboard routes 
 { path: '/athletedashboard', element: <AthleteDashboard />},
 { path: '/athleteexplore', element: <AthleteExplore />},
 { path: '/athleterecruiters', element: <AthleteRecruiters />},
 { path: '/athleteprofile', element: <AthleteProfile />},
+{ path: '/athletepost', element: <AthletePost />},
+{ path: '/athletesettings', element: <AthleteSettings />},
+{ path: '/athletemessages', element: <AthleteMessages />},
+
+
+
+
+// Recruiter Dashboard routes
 { path: '/recruiterdashboard', element: <RecruiterDashboard />},
+{ path: '/recruiterathletes', element: <RecruiterAthletes />},
+{ path: '/recruitershortlist', element: <RecruiterShortList />},
+{ path: '/recruitermessages', element: <RecruiterMessages />},
+{ path: '/recruiterprofile', element: <RecruiterProfile />},
+{ path: '/recruitersettings', element: <RecruiterSettings />}
 ])
 
 

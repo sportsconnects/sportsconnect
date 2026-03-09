@@ -30,6 +30,7 @@ export default function AthleteNavbar({ dark = false, toggleDark }) {
     { label: "Explore", to: "/athleteexplore" },
     { label: "Recruiters", to: "/athleterecruiters" },
     { label: "My Profile", to: "/athleteprofile" },
+    { label: "Messages", to: "/athletemessages" },
   ];
 
   return (
@@ -90,7 +91,7 @@ export default function AthleteNavbar({ dark = false, toggleDark }) {
 
       <nav className={`sc-nav fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${dark
         ? scrolled
-          ? "bg-[#0D1117]/95 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.06)] shadow-lg"
+          ? "bg-[#0D1117]/95 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.06)]"
           : "bg-[#0D1117]"
         : scrolled
           ? "bg-white/95 backdrop-blur-xl shadow-md border-b border-gray-200"
@@ -229,9 +230,9 @@ export default function AthleteNavbar({ dark = false, toggleDark }) {
 
                     {/* Menu items */}
                     {[
-                      { icon: User, label: "View Profile", to: "/athlete/profile" },
-                      { icon: Trophy, label: "My Highlights", to: "/athlete/highlights" },
-                      { icon: Settings, label: "Settings", to: "/athlete/settings" },
+                      { icon: User, label: "View Profile", to: "/athleteprofile" },
+                      // { icon: Trophy, label: "My Highlights", to: "/athlete/highlights" },
+                      { icon: Settings, label: "Settings", to: "/athletesettings" },
                     ].map(({ icon: Icon, label, to }) => (
                       <Link
                         key={to}

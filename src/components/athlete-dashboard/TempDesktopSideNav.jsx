@@ -2,17 +2,18 @@
 
 import { useState } from "react"
 import { Home, Search, Bell, Bookmark, User, Settings, Video, MoreHorizontal } from "lucide-react"
+import { Link } from "react-router"
 
 const THEME = {
   dark: {
-    text:      "#F0F6FF",
+    text: "#F0F6FF",
     textMuted: "#4B5563",
-    hover:     "rgba(255,255,255,0.025)",
+    hover: "rgba(255,255,255,0.025)",
   },
   light: {
-    text:      "#111827",
+    text: "#111827",
     textMuted: "#9CA3AF",
-    hover:     "rgba(0,0,0,0.025)",
+    hover: "rgba(0,0,0,0.025)",
   }
 }
 
@@ -46,18 +47,18 @@ export default function DesktopSideNav({ active, setActive, dark }) {
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-semibold text-left w-full"
             style={{
               background: isActive ? "rgba(29,168,255,.1)" : "transparent",
-              color:      isActive ? ACCENT : tk.textMuted,
+              color: isActive ? ACCENT : tk.textMuted,
             }}
             onMouseEnter={e => {
               if (!isActive) {
                 e.currentTarget.style.background = tk.hover
-                e.currentTarget.style.color      = tk.text
+                e.currentTarget.style.color = tk.text
               }
             }}
             onMouseLeave={e => {
               if (!isActive) {
                 e.currentTarget.style.background = "transparent"
-                e.currentTarget.style.color      = tk.textMuted
+                e.currentTarget.style.color = tk.textMuted
               }
             }}
           >
@@ -67,14 +68,14 @@ export default function DesktopSideNav({ active, setActive, dark }) {
         )
       })}
 
-      {/* ── Post highlights button ── */}
-      <button
-        className="mt-4 text-white rounded-xl py-2.5 px-3 text-sm font-bold flex items-center gap-2 transition-opacity hover:opacity-90 w-full"
+      <Link
+        to="/athletepost"
+        className="mt-4 text-white rounded-xl py-2.5 px-3 text-sm font-bold flex items-center gap-2 transition-opacity hover:opacity-90 w-full justify-center"
         style={{ background: ACCENT }}
       >
         <Video className="w-4 h-4 flex-shrink-0" />
         Post Highlights
-      </button>
+      </Link>
 
       {/* ── Mini profile ── */}
       <div
