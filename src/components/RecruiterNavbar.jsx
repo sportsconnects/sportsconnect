@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Link, useLocation } from "react-router"
 import logo from "../../src/assets/images/sc12.png"
 import { Bell, Search, ChevronDown, LogOut, Settings, User, Sun, Moon } from "lucide-react"
-import { ACCENT, ACCENT2, THEME } from "./RecruiterUI"
+import { ACCENT, ACCENT2, THEME } from "../../src/components/RecruiterUi"
 
 const NAV_LINKS = [
   { label:"Dashboard",  to:"/recruiterdashboard"  },
