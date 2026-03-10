@@ -5,6 +5,7 @@ import Footer from "../components/Footer"
 import { LogIn, Eye, EyeOff } from "lucide-react"
 import sc25 from "../assets/images/sc25.jpg"
 import { loginUser } from "../../src/api/client"
+import { toast } from "sonner"
 
 export default function SignIn() {
     const navigate = useNavigate()
@@ -28,7 +29,7 @@ export default function SignIn() {
         setError("")
 
         if (!formData.email || !formData.password) {
-            return setError("Please enter your email and password")
+            return toast.error("Please enter your email and password")
         }
 
         try {
@@ -46,7 +47,7 @@ export default function SignIn() {
             }
 
         } catch (err) {
-            setError(err.response?.data?.message || "Something went wrong. Try again.")
+            toast.error(err.response?.data?.message || "Something went wrong. Try again.")
         } finally {
             setLoading(false)
         }

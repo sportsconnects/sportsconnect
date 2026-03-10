@@ -1,7 +1,8 @@
 // src/pages/RecruiterDashboard.jsx
 
-import { useState } from "react"
-import { Link } from "react-router"
+import { useState, useEffect } from "react"
+import { Link, useNavigate } from "react-router"
+import { toast } from "sonner"
 import RecruiterNavbar from "../components/RecruiterNavbar"
 import {
   StatCard, SectionCard, AthleteRow, ActivityItem, FilterPill,
@@ -12,67 +13,54 @@ import {
   Flame, Search, Clock, Star, TrendingUp
 } from "lucide-react"
 import RecruiterBottomNav from "../components/RecruiterBottomNav"
-
-// ─────────────────────────────────────────────────────────────────────────────
-// MOCK DATA
-// ─────────────────────────────────────────────────────────────────────────────
-const RECENT_ATHLETES = [
-  { id:1, name:"Kofi Mensah",   sport:"Soccer",        region:"Greater Accra", classOf:"2026", gpa:"3.5", verified:true  },
-  { id:2, name:"Ama Asante",    sport:"Track & Field", region:"Central",       classOf:"2025", gpa:"3.9", verified:false },
-  { id:3, name:"Kwame Boateng", sport:"Basketball",    region:"Ashanti",       classOf:"2026", gpa:"3.7", verified:true  },
-  { id:4, name:"Efua Darko",    sport:"Swimming",      region:"Greater Accra", classOf:"2025", gpa:"4.0", verified:false },
-  { id:5, name:"Serwaa Boadu",  sport:"Track & Field", region:"Central",       classOf:"2025", gpa:"3.8", verified:true  },
-]
-
-const SHORTLISTED = [
-  { id:1, name:"Kofi Mensah",   sport:"Soccer",     region:"Greater Accra", classOf:"2026", gpa:"3.5", verified:true },
-  { id:3, name:"Kwame Boateng", sport:"Basketball", region:"Ashanti",       classOf:"2026", gpa:"3.7", verified:true },
-  { id:6, name:"James Junior",  sport:"Soccer",     region:"Eastern",       classOf:"2026", gpa:"3.8", verified:true },
-]
-
-const PENDING_OFFERS = [
-  { athlete:"James Junior",  type:"Full Scholarship", deadline:"Mar 30, 2026", status:"pending" },
-  { athlete:"Kofi Mensah",   type:"Trial Invitation", deadline:"Apr 5, 2026",  status:"viewed"  },
-]
-
-const ACTIVITY = [
-  { icon:Eye,           iconColor:"#1DA8FF",  iconBg:"rgba(29,168,255,0.12)", text:"You viewed James Junior's profile",                  time:"2 hours ago"  },
-  { icon:MessageCircle, iconColor:ACCENT,     iconBg:`${ACCENT}20`,           text:"Your message to Kofi Mensah was delivered",          time:"5 hours ago"  },
-  { icon:Award,         iconColor:"#A855F7",  iconBg:"rgba(168,85,247,0.12)", text:"Scholarship offer sent to James Junior",             time:"1 day ago"    },
-  { icon:Star,          iconColor:ACCENT,     iconBg:`${ACCENT}18`,           text:"Kwame Boateng added to your shortlist",              time:"2 days ago"   },
-  { icon:Bell,          iconColor:"#F97316",  iconBg:"rgba(249,115,22,0.12)", text:"3 new athletes match your Soccer filter today",      time:"3 days ago"   },
-]
+import {
+  getCurrentUser, isLoggedIn,
+  getRecruiterById, getAthletes,
+  getShortlist, getOffers
+} from "../../src/api/client"
 
 const SPORT_FILTERS = ["All Sports","Soccer","Basketball","Track & Field","Swimming","Volleyball"]
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // PENDING OFFERS WIDGET
-// ─────────────────────────────────────────────────────────────────────────────
-function PendingOffers({ dark }) {
+function PendingOffers({ offers, dark }) {
   const tk = dark ? THEME.dark : THEME.light
   const STATUS = {
     pending: { color:"#F97316", label:"Awaiting" },
     viewed:  { color:ACCENT,    label:"Viewed"   },
   }
+
+  const pending = offers.filter(o => ["pending","viewed"].includes(o.status)).slice(0, 3)
+
+  if (pending.length === 0) return null
+
   return (
     <SectionCard icon={Award} title="Pending Offers"
       action="View All" actionTo="/recruiter/offers" dark={dark}>
-      {PENDING_OFFERS.map((o, i) => (
-        <div key={i} className="flex items-center justify-between gap-3 px-4 py-3"
-          style={{ borderBottom: i < PENDING_OFFERS.length-1 ? `1px solid ${tk.border}` : "none" }}>
+      {pending.map((o, i) => (
+        <div key={o._id} className="flex items-center justify-between gap-3 px-4 py-3"
+          style={{ borderBottom: i < pending.length-1 ? `1px solid ${tk.border}` : "none" }}>
           <div className="flex items-center gap-3 min-w-0">
-            <RAvatar name={o.athlete} size={32} />
+            <RAvatar name={`${o.athlete?.firstName} ${o.athlete?.lastName}`} size={32} />
             <div className="min-w-0">
-              <p className="text-sm font-bold truncate" style={{ color:tk.text }}>{o.athlete}</p>
+              <p className="text-sm font-bold truncate" style={{ color:tk.text }}>
+                {o.athlete?.firstName} {o.athlete?.lastName}
+              </p>
               <p className="text-xs flex items-center gap-1 mt-0.5" style={{ color:tk.textMuted }}>
-                <Clock className="w-3 h-3" />Deadline: {o.deadline}
+                <Clock className="w-3 h-3" />
+                {o.deadline
+                  ? `Deadline: ${new Date(o.deadline).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" })}`
+                  : o.type}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <span className="text-xs font-bold px-2.5 py-1 rounded-full"
-              style={{ background:`${STATUS[o.status].color}15`, color:STATUS[o.status].color }}>
-              {STATUS[o.status].label}
+              style={{
+                background:`${STATUS[o.status]?.color || ACCENT}15`,
+                color: STATUS[o.status]?.color || ACCENT
+              }}>
+              {STATUS[o.status]?.label || o.status}
             </span>
           </div>
         </div>
@@ -81,17 +69,143 @@ function PendingOffers({ dark }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // MAIN PAGE
-// ─────────────────────────────────────────────────────────────────────────────
 export default function RecruiterDashboard() {
-  const [dark, setDark]     = useState(false)
-  const [sport, setSport]   = useState("All Sports")
+  const navigate = useNavigate()
+  const [dark, setDark]   = useState(false)
+  const [sport, setSport] = useState("All Sports")
   const tk = dark ? THEME.dark : THEME.light
 
-  const filtered = RECENT_ATHLETES.filter(a =>
+  // ── Real data state 
+  const [currentUser,      setCurrentUser]      = useState(null)
+  const [recruiterProfile, setRecruiterProfile] = useState(null)
+  const [recentAthletes,   setRecentAthletes]   = useState([])
+  const [shortlist,        setShortlist]        = useState([])
+  const [offers,           setOffers]           = useState([])
+  const [loading,          setLoading]          = useState(true)
+
+  // ── Fetch all data 
+  useEffect(() => {
+    if (!isLoggedIn()) {
+      navigate("/signin")
+      return
+    }
+
+    const user = getCurrentUser()
+
+    if (user?.role === "athlete") {
+      navigate("/athletedashboard")
+      return
+    }
+
+    setCurrentUser(user)
+
+    const fetchAll = async () => {
+      try {
+        // Run all requests in parallel
+        const [profileRes, athletesRes, shortlistRes, offersRes] = await Promise.allSettled([
+          getRecruiterById(user.id),
+          getAthletes({ limit: 5 }),
+          getShortlist(),
+          getOffers(),
+        ])
+
+        if (profileRes.status  === "fulfilled") setRecruiterProfile(profileRes.value.data.profile)
+        if (athletesRes.status === "fulfilled") setRecentAthletes(athletesRes.value.data.athletes?.slice(0, 5) || [])
+        if (shortlistRes.status === "fulfilled") setShortlist(shortlistRes.value.data.shortlist || [])
+        if (offersRes.status   === "fulfilled") setOffers(offersRes.value.data.offers || [])
+
+      } catch (err) {
+        toast.error("Failed to load dashboard data")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAll()
+  }, [navigate])
+
+  // ── Build greeting name
+  const greetingName = currentUser
+    ? `Coach ${currentUser.lastName?.toUpperCase()}`
+    : "COACH"
+
+  // ── Time-based greeting 
+  const hour = new Date().getHours()
+  const timeGreeting = hour < 12 ? "GOOD MORNING" : hour < 17 ? "GOOD AFTERNOON" : "GOOD EVENING"
+
+  // ── Sport filter
+  const filteredAthletes = recentAthletes.filter(a =>
     sport === "All Sports" || a.sport === sport
   )
+
+  // ── Stats 
+  const shortlistCount  = shortlist.length
+  const offersCount     = offers.length
+  const pendingOffers   = offers.filter(o => ["pending","viewed"].includes(o.status))
+  const profileViews    = recruiterProfile?.profileViews || 0
+
+  // ── Loading screen 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center"
+        style={{ background: tk.page, fontFamily:"'DM Sans','Segoe UI',sans-serif" }}>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+          @keyframes pulse-ring {
+            0%   { transform:scale(0.85); opacity:0.6; }
+            50%  { transform:scale(1.05); opacity:1;   }
+            100% { transform:scale(0.85); opacity:0.6; }
+          }
+          @keyframes shimmer {
+            0%   { background-position:-200% center; }
+            100% { background-position: 200% center; }
+          }
+          @keyframes fade-up {
+            from { opacity:0; transform:translateY(12px); }
+            to   { opacity:1; transform:translateY(0);    }
+          }
+          .sc-pulse { animation:pulse-ring 2s ease-in-out infinite; }
+          .sc-shimmer {
+            background:linear-gradient(90deg,${ACCENT} 0%,#fff 40%,${ACCENT} 80%);
+            background-size:200% auto;
+            -webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;
+            background-clip:text;
+            animation:shimmer 2.5s linear infinite;
+          }
+          .sc-fadeup { animation:fade-up 0.6s ease forwards; }
+          .dot { display:inline-block; animation:dot-b 1.4s ease-in-out infinite; }
+          .dot:nth-child(2) { animation-delay:0.2s; }
+          .dot:nth-child(3) { animation-delay:0.4s; }
+          @keyframes dot-b {
+            0%,80%,100% { transform:translateY(0);    opacity:0.4; }
+            40%          { transform:translateY(-6px); opacity:1;   }
+          }
+        `}</style>
+
+        <div className="sc-fadeup text-center" style={{ animationDelay: "50s" }}>
+          <h1 className="sc-shimmer font-black text-2xl mb-1"
+            style={{ fontFamily:"'Bebas Neue',sans-serif", letterSpacing:"0.08em" }}>
+            SPORTSCONNECT
+          </h1>
+          <p className="text-xs font-medium tracking-widest uppercase mb-6"
+            style={{ color:tk.textMuted, letterSpacing:"0.2em" }}>
+            Scout Platform
+          </p>
+        </div>
+
+        <div className="sc-fadeup flex items-center gap-1">
+          <span className="dot w-2 h-2 rounded-full" style={{ background:ACCENT }} />
+          <span className="dot w-2 h-2 rounded-full" style={{ background:ACCENT }} />
+          <span className="dot w-2 h-2 rounded-full" style={{ background:ACCENT }} />
+        </div>
+        <p className="sc-fadeup text-xs mt-3" style={{ color:tk.textMuted }}>
+          Loading your dashboard...
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen transition-colors duration-300"
@@ -122,7 +236,6 @@ export default function RecruiterDashboard() {
                   : "linear-gradient(135deg,#FFFBEB,#FEF3C7)",
                 border:`1px solid ${ACCENT}25`
               }}>
-              {/* Glow */}
               <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full blur-3xl"
                 style={{ background:`${ACCENT}20` }} />
               <div className="relative">
@@ -134,18 +247,21 @@ export default function RecruiterDashboard() {
                 </div>
                 <h1 className="font-black text-2xl sm:text-3xl mb-1"
                   style={{ fontFamily:"'Bebas Neue',sans-serif", letterSpacing:"0.05em", color:tk.text }}>
-                  GOOD MORNING, COACH MENSAH
+                  {timeGreeting}, {greetingName}
                 </h1>
                 <p className="text-sm" style={{ color:tk.textSub }}>
-                  <span className="font-bold" style={{ color:ACCENT }}>3 new athletes</span> match your filters today.
-                  Your shortlist has <span className="font-bold" style={{ color:ACCENT }}>{SHORTLISTED.length} players</span>.
+                  {recentAthletes.length > 0
+                    ? <><span className="font-bold" style={{ color:ACCENT }}>{recentAthletes.length} athletes</span> available to scout today. </>
+                    : "Welcome to your scout dashboard. "}
+                  Your shortlist has{" "}
+                  <span className="font-bold" style={{ color:ACCENT }}>{shortlistCount} players</span>.
                 </p>
               </div>
             </div>
 
             {/* Quick search */}
             <Link to="/recruiterathletes"
-              className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl mb-6 transition-all group"
+              className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl mb-6 transition-all"
               style={{ background:tk.surface, border:`1px solid ${tk.border}` }}
               onMouseEnter={e => e.currentTarget.style.borderColor = ACCENT}
               onMouseLeave={e => e.currentTarget.style.borderColor = tk.border}>
@@ -159,12 +275,12 @@ export default function RecruiterDashboard() {
               </span>
             </Link>
 
-            {/* Stats */}
+            {/* Stats — real data */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-              <StatCard icon={Eye}           label="Profiles Viewed" value="142" sub="this month"         dark={dark} />
-              <StatCard icon={Bookmark}      label="Shortlisted"     value="18"  sub="saved athletes"     dark={dark} accent="#1DA8FF" />
-              <StatCard icon={MessageCircle} label="Messages"        value="24"  sub="sent this month"    dark={dark} accent="#A855F7" />
-              <StatCard icon={Award}         label="Offers Sent"     value="3"   sub="2 awaiting reply"   dark={dark} accent="#F97316" />
+              <StatCard icon={Eye}           label="Profile Views"  value={String(profileViews)}    sub="total views"          dark={dark} />
+              <StatCard icon={Bookmark}      label="Shortlisted"    value={String(shortlistCount)}  sub="saved athletes"       dark={dark} accent="#1DA8FF" />
+              <StatCard icon={MessageCircle} label="Offers Sent"    value={String(offersCount)}     sub="total offers"         dark={dark} accent="#A855F7" />
+              <StatCard icon={Award}         label="Pending Offers" value={String(pendingOffers.length)} sub="awaiting reply"  dark={dark} accent="#F97316" />
             </div>
 
             {/* Content + sidebar */}
@@ -174,9 +290,8 @@ export default function RecruiterDashboard() {
               <div className="flex-1 min-w-0">
 
                 {/* Recent athletes */}
-                <SectionCard icon={TrendingUp} title="Recently Viewed"
+                <SectionCard icon={TrendingUp} title="Athletes"
                   action="Browse All" actionTo="/recruiterathletes" dark={dark}>
-                  {/* Sport filter pills */}
                   <div className="flex gap-2 px-4 py-3 overflow-x-auto"
                     style={{ borderBottom:`1px solid ${tk.border}`, scrollbarWidth:"none" }}>
                     {SPORT_FILTERS.map(s => (
@@ -184,33 +299,80 @@ export default function RecruiterDashboard() {
                         onClick={() => setSport(s)} dark={dark} />
                     ))}
                   </div>
-                  {filtered.length > 0
-                    ? filtered.map((a, i) => (
-                        <AthleteRow key={a.id} athlete={a} dark={dark}
-                          saved={i===0} border={i < filtered.length-1} />
-                      ))
+                  {filteredAthletes.length > 0
+                    ? filteredAthletes.map((a, i) => {
+                        // Build athlete object AthleteRow expects
+                        const athleteObj = {
+                          id:       a.user?._id || a._id,
+                          name:     `${a.user?.firstName} ${a.user?.lastName}`,
+                          sport:    a.sport    || "—",
+                          region:   a.region   || "—",
+                          classOf:  a.classOf  || "—",
+                          gpa:      a.gpa      || "—",
+                          verified: a.verified || false,
+                        }
+                        return (
+                          <AthleteRow key={a._id} athlete={athleteObj} dark={dark}
+                            saved={shortlist.some(s => s.athlete?.id === athleteObj.id)}
+                            border={i < filteredAthletes.length-1} />
+                        )
+                      })
                     : (
                       <div className="px-4 py-10 text-center">
-                        <p className="text-sm" style={{ color:tk.textMuted }}>No athletes match this filter</p>
+                        <p className="text-sm" style={{ color:tk.textMuted }}>
+                          {recentAthletes.length === 0
+                            ? "No athletes have joined yet."
+                            : "No athletes match this filter"}
+                        </p>
                       </div>
                     )
                   }
                 </SectionCard>
 
-                <PendingOffers dark={dark} />
+                {/* Pending offers — real data */}
+                <PendingOffers offers={offers} dark={dark} />
               </div>
 
               {/* Desktop right sidebar */}
               <div className="hidden xl:flex flex-col gap-4 w-72 flex-shrink-0">
                 <SectionCard icon={Bookmark} title="My Shortlist"
                   action="View All" actionTo="/recruitershortlist" dark={dark}>
-                  {SHORTLISTED.map((a, i) => (
-                    <AthleteRow key={a.id} athlete={a} dark={dark}
-                      saved border={i < SHORTLISTED.length-1} />
-                  ))}
+                  {shortlist.length > 0
+                    ? shortlist.slice(0, 4).map((item, i) => {
+                        const athleteObj = {
+                          id:       item.athlete?.id,
+                          name:     `${item.athlete?.firstName} ${item.athlete?.lastName}`,
+                          sport:    item.athlete?.sport    || "—",
+                          region:   item.athlete?.region   || "—",
+                          classOf:  item.athlete?.classOf  || "—",
+                          gpa:      item.athlete?.gpa      || "—",
+                          verified: item.athlete?.verified || false,
+                        }
+                        return (
+                          <AthleteRow key={item._id} athlete={athleteObj} dark={dark}
+                            saved border={i < Math.min(shortlist.length, 4)-1} />
+                        )
+                      })
+                    : (
+                      <div className="px-4 py-6 text-center">
+                        <p className="text-sm" style={{ color:tk.textMuted }}>No athletes shortlisted yet</p>
+                        <Link to="/recruiterathletes"
+                          className="text-xs font-bold mt-2 inline-block"
+                          style={{ color:ACCENT }}>
+                          Browse Athletes →
+                        </Link>
+                      </div>
+                    )
+                  }
                 </SectionCard>
+
+                {/* Activity — keep as mock for now */}
                 <SectionCard icon={Bell} title="Recent Activity" dark={dark}>
-                  {ACTIVITY.map((item, i) => (
+                  {[
+                    { icon:Eye,           iconColor:"#1DA8FF", iconBg:"rgba(29,168,255,0.12)", text:"Dashboard loaded successfully",   time:"just now"  },
+                    { icon:Bookmark,      iconColor:ACCENT,    iconBg:`${ACCENT}20`,           text:`${shortlistCount} athletes on your shortlist`, time:"now" },
+                    { icon:Award,         iconColor:"#F97316", iconBg:"rgba(249,115,22,0.12)", text:`${offersCount} offers sent total`, time:"now" },
+                  ].map((item, i) => (
                     <ActivityItem key={i} {...item} dark={dark} />
                   ))}
                 </SectionCard>
@@ -220,16 +382,29 @@ export default function RecruiterDashboard() {
             {/* Mobile sidebar */}
             <div className="xl:hidden mt-4 space-y-4">
               <SectionCard icon={Bookmark} title="My Shortlist"
-                action="View All" actionTo="/recruiter/shortlists" dark={dark}>
-                {SHORTLISTED.map((a, i) => (
-                  <AthleteRow key={a.id} athlete={a} dark={dark}
-                    saved border={i < SHORTLISTED.length-1} />
-                ))}
-              </SectionCard>
-              <SectionCard icon={Bell} title="Recent Activity" dark={dark}>
-                {ACTIVITY.map((item, i) => (
-                  <ActivityItem key={i} {...item} dark={dark} />
-                ))}
+                action="View All" actionTo="/recruitershortlist" dark={dark}>
+                {shortlist.length > 0
+                  ? shortlist.slice(0, 3).map((item, i) => {
+                      const athleteObj = {
+                        id:       item.athlete?.id,
+                        name:     `${item.athlete?.firstName} ${item.athlete?.lastName}`,
+                        sport:    item.athlete?.sport    || "—",
+                        region:   item.athlete?.region   || "—",
+                        classOf:  item.athlete?.classOf  || "—",
+                        gpa:      item.athlete?.gpa      || "—",
+                        verified: item.athlete?.verified || false,
+                      }
+                      return (
+                        <AthleteRow key={item._id} athlete={athleteObj} dark={dark}
+                          saved border={i < Math.min(shortlist.length, 3)-1} />
+                      )
+                    })
+                  : (
+                    <div className="px-4 py-6 text-center">
+                      <p className="text-sm" style={{ color:tk.textMuted }}>No athletes shortlisted yet</p>
+                    </div>
+                  )
+                }
               </SectionCard>
             </div>
 
