@@ -1,6 +1,8 @@
 // src/pages/AthleteProfile.jsx
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useNavigate, Link } from "react-router"
+import { toast } from "sonner"
 import AthleteNavbar from "./../../components/AthleteNavbar"
 import DesktopSideNav from "./../../components/athlete-dashboard/TempDesktopSideNav"
 import MobileBottomNav from "./../../components/athlete-dashboard/TempMobileBottomNav"
@@ -12,85 +14,43 @@ import {
   TrendingUp, Award, BookOpen, Calendar, Ruler,
   MessageCircle, UserPlus, Video
 } from "lucide-react"
+import { getAthleteById, getCurrentUser, isLoggedIn } from "../../api/client"
 
 const ACCENT = "#1DA8FF"
 
 const THEME = {
   dark: {
-    page:"#0D1117", surface:"#161B22", surfaceHigh:"#1C2128",
-    border:"rgba(255,255,255,0.06)", text:"#F0F6FF", textSub:"#9CA3AF",
-    textMuted:"#4B5563", hover:"rgba(255,255,255,0.04)",
+    page: "#0D1117", surface: "#161B22", surfaceHigh: "#1C2128",
+    border: "rgba(255,255,255,0.06)", text: "#F0F6FF", textSub: "#9CA3AF",
+    textMuted: "#4B5563", hover: "rgba(255,255,255,0.04)",
   },
   light: {
-    page:"#F0F4FA", surface:"#FFFFFF", surfaceHigh:"#F8FAFC",
-    border:"#E5E7EB", text:"#111827", textSub:"#6B7280",
-    textMuted:"#9CA3AF", hover:"rgba(0,0,0,0.03)",
+    page: "#F0F4FA", surface: "#FFFFFF", surfaceHigh: "#F8FAFC",
+    border: "#E5E7EB", text: "#111827", textSub: "#6B7280",
+    textMuted: "#9CA3AF", hover: "rgba(0,0,0,0.03)",
   }
 }
 
-const ATHLETE = {
-  name:"James Junior", handle:"@jamesjnr_cb", sport:"Soccer",
-  position:"Center Back", school:"Achimota School",
-  location:"Greater Accra, Ghana", classOf:"2026",
-  height:"6'1\"", weight:"76kg", gpa:"3.7",
-  bio:"Passionate center back with a strong defensive record and leadership on the pitch. Committed to academic excellence and athletic development. Looking for opportunities at the collegiate level.",
-  followers:1842, following:234, profileViews:"14.2k",
-  verified:true, recruiterInterest:3,
-  stats:[
-    { label:"Matches Played", value:"42",   icon:Calendar    },
-    { label:"Clean Sheets",   value:"18",   icon:CheckCheck  },
-    { label:"Goals",          value:"6",    icon:Trophy      },
-    { label:"Assists",        value:"11",   icon:Star        },
-    { label:"GPA",            value:"3.7",  icon:BookOpen    },
-    { label:"Class",          value:"2026", icon:GraduationCap },
-  ],
-  achievements:[
-    { title:"InterSchools MVP",          year:"2025", icon:"🏆", color:"#F59E0B" },
-    { title:"Regional Best Defender",    year:"2024", icon:"🛡️", color:"#10B981" },
-    { title:"School Team Captain",       year:"2025", icon:"⭐", color:ACCENT    },
-    { title:"National Schools Finalist", year:"2024", icon:"🥈", color:"#A855F7" },
-    { title:"Academic Excellence Award", year:"2025", icon:"📚", color:"#F97316" },
-    { title:"Community Champion",        year:"2023", icon:"🤝", color:"#06B6D4" },
-  ],
-  highlights:[
-    { id:1, title:"Regional Finals — Defensive Masterclass", views:"12.4k", likes:341, duration:"2:14", videoId:"-5oif_xAwyg", featured:true  },
-    { id:2, title:"InterSchools 2025 — Top Plays",           views:"8.9k",  likes:219, duration:"3:02", videoId:"-5oif_xAwyg", featured:false },
-    { id:3, title:"Training Session Highlights",             views:"3.2k",  likes:87,  duration:"1:45", videoId:"-5oif_xAwyg", featured:false },
-    { id:4, title:"Pre-Season — Ball Distribution",          views:"5.1k",  likes:143, duration:"2:38", videoId:"-5oif_xAwyg", featured:false },
-    { id:5, title:"Match Day vs Prempeh College",            views:"7.6k",  likes:198, duration:"2:55", videoId:"-5oif_xAwyg", featured:false },
-    { id:6, title:"Heading & Aerial Duels Reel",             views:"4.4k",  likes:112, duration:"1:58", videoId:"-5oif_xAwyg", featured:false },
-  ],
-  posts:[
-    { id:1, text:"Big win for the team today 🔥 Proud of every single one of my guys. Regional finals here we come!", time:"2 hours ago", likes:84,  comments:12 },
-    { id:2, text:"Finished my Biology mock with a solid score. Balance on and off the pitch 📚⚽",                      time:"3 days ago", likes:57,  comments:8  },
-    { id:3, text:"Honored to be named School Team Captain for the second consecutive year. The work continues 💪",    time:"1 week ago", likes:213, comments:34 },
-  ],
-  recruiterViews:[
-    { name:"University of Ghana",   role:"Head Recruiter",      time:"2h ago", interest:"high"   },
-    { name:"KNUST",                 role:"Athletic Director",   time:"5h ago", interest:"high"   },
-    { name:"Cape Coast University", role:"Youth Academy Coach", time:"1d ago", interest:"medium" },
-  ]
-}
-
-const TABS = ["Overview","Highlights","Posts","Achievements"]
+const TABS = ["Overview", "Highlights", "Posts", "Achievements"]
 const INTEREST_COLOR = {
-  high:  { bg:"rgba(16,185,129,0.12)", border:"rgba(16,185,129,0.3)", color:"#10B981" },
-  medium:{ bg:"rgba(245,158,11,0.12)", border:"rgba(245,158,11,0.3)", color:"#F59E0B" },
+  high: { bg: "rgba(16,185,129,0.12)", border: "rgba(16,185,129,0.3)", color: "#10B981" },
+  medium: { bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.3)", color: "#F59E0B" },
 }
 
+// ── Highlight Card 
 function HighlightCard({ clip, dark, featured }) {
   const [playing, setPlaying] = useState(false)
-  const [liked,   setLiked]   = useState(false)
+  const [liked, setLiked] = useState(false)
   const tk = dark ? THEME.dark : THEME.light
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ background:tk.surface, border:`1px solid ${tk.border}` }}>
-      {featured && <div className="h-0.5" style={{ background:`linear-gradient(90deg,${ACCENT},#6366F1)` }} />}
-      <div className="relative w-full" style={{ aspectRatio:"16/9" }}>
+    <div className="rounded-2xl overflow-hidden" style={{ background: tk.surface, border: `1px solid ${tk.border}` }}>
+      {featured && <div className="h-0.5" style={{ background: `linear-gradient(90deg,${ACCENT},#6366F1)` }} />}
+      <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
         {!playing ? (
           <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center cursor-pointer relative group" onClick={() => setPlaying(true)}>
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
             {featured && (
-              <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background:"rgba(29,168,255,0.85)", color:"#fff" }}>
+              <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: "rgba(29,168,255,0.85)", color: "#fff" }}>
                 <Star className="w-2.5 h-2.5 fill-white" /> Featured
               </div>
             )}
@@ -105,11 +65,11 @@ function HighlightCard({ clip, dark, featured }) {
         )}
       </div>
       <div className="p-3">
-        <p className="text-sm font-semibold leading-snug mb-2" style={{ color:tk.text }}>{clip.title}</p>
+        <p className="text-sm font-semibold leading-snug mb-2" style={{ color: tk.text }}>{clip.title}</p>
         <div className="flex items-center justify-between">
-          <span className="flex items-center gap-1 text-xs" style={{ color:tk.textMuted }}><Eye className="w-3 h-3" />{clip.views}</span>
-          <button onClick={() => setLiked(!liked)} className="flex items-center gap-1 text-xs transition-colors" style={{ color:liked?"#EC4899":tk.textMuted }}>
-            <Heart className={`w-3.5 h-3.5 ${liked?"fill-pink-500":""}`} />{clip.likes+(liked?1:0)}
+          <span className="flex items-center gap-1 text-xs" style={{ color: tk.textMuted }}><Eye className="w-3 h-3" />{clip.views}</span>
+          <button onClick={() => setLiked(!liked)} className="flex items-center gap-1 text-xs transition-colors" style={{ color: liked ? "#EC4899" : tk.textMuted }}>
+            <Heart className={`w-3.5 h-3.5 ${liked ? "fill-pink-500" : ""}`} />{clip.likes + (liked ? 1 : 0)}
           </button>
         </div>
       </div>
@@ -117,100 +77,136 @@ function HighlightCard({ clip, dark, featured }) {
   )
 }
 
-function StatPill({ icon:Icon, label, value, dark }) {
+// ── Stat Pill
+function StatPill({ icon: Icon, label, value, dark }) {
   const tk = dark ? THEME.dark : THEME.light
   return (
-    <div className="flex flex-col items-center gap-1 px-3 py-3 rounded-2xl" style={{ background:tk.surfaceHigh, border:`1px solid ${tk.border}` }}>
-      <Icon className="w-4 h-4" style={{ color:ACCENT }} />
-      <p className="font-black text-lg leading-none" style={{ color:tk.text }}>{value}</p>
-      <p className="text-xs text-center leading-tight" style={{ color:tk.textMuted }}>{label}</p>
+    <div className="flex flex-col items-center gap-1 px-3 py-3 rounded-2xl" style={{ background: tk.surfaceHigh, border: `1px solid ${tk.border}` }}>
+      <Icon className="w-4 h-4" style={{ color: ACCENT }} />
+      <p className="font-black text-lg leading-none" style={{ color: tk.text }}>{value}</p>
+      <p className="text-xs text-center leading-tight" style={{ color: tk.textMuted }}>{label}</p>
     </div>
   )
 }
 
-function OverviewTab({ dark }) {
+// ── Overview Tab 
+function OverviewTab({ athlete, profile, dark }) {
   const tk = dark ? THEME.dark : THEME.light
+
+  // Build stats from real profile data
+  const stats = profile ? [
+    { label: "GPA", value: profile.gpa || "—", icon: BookOpen },
+    { label: "Class", value: profile.classOf || "—", icon: GraduationCap },
+    { label: "Height", value: profile.height || "—", icon: Ruler },
+    { label: "Sport", value: profile.sport || "—", icon: Trophy },
+    { label: "Position", value: profile.position || "—", icon: Star },
+    { label: "Views", value: profile.profileViews || 0, icon: Eye },
+  ] : []
+
+  const featuredHighlight = profile?.highlights?.find(h => h.featured) || profile?.highlights?.[0]
+
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="font-black text-sm mb-3 flex items-center gap-2" style={{ color:tk.text }}>
-          <TrendingUp className="w-4 h-4" style={{ color:ACCENT }} /> Career Stats
-        </h3>
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-          {ATHLETE.stats.map(s => <StatPill key={s.label} {...s} dark={dark} />)}
+      {/* Stats */}
+      {stats.length > 0 && (
+        <div>
+          <h3 className="font-black text-sm mb-3 flex items-center gap-2" style={{ color: tk.text }}>
+            <TrendingUp className="w-4 h-4" style={{ color: ACCENT }} /> Profile Stats
+          </h3>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            {stats.map(s => <StatPill key={s.label} {...s} dark={dark} />)}
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="rounded-2xl p-4" style={{ background:tk.surface, border:`1px solid ${tk.border}` }}>
-        <h3 className="font-black text-sm mb-3 flex items-center gap-2" style={{ color:tk.text }}>
-          <Ruler className="w-4 h-4" style={{ color:ACCENT }} /> Physical Profile
+      {/* Physical profile */}
+      <div className="rounded-2xl p-4" style={{ background: tk.surface, border: `1px solid ${tk.border}` }}>
+        <h3 className="font-black text-sm mb-3 flex items-center gap-2" style={{ color: tk.text }}>
+          <Ruler className="w-4 h-4" style={{ color: ACCENT }} /> Physical Profile
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[["Height",ATHLETE.height],["Weight",ATHLETE.weight],["Position",ATHLETE.position],["Class Of",ATHLETE.classOf]].map(([k,v]) => (
+          {[
+            ["Height", profile?.height || "—"],
+            ["Weight", profile?.weight || "—"],
+            ["Position", profile?.position || "—"],
+            ["Class Of", profile?.classOf || "—"],
+          ].map(([k, v]) => (
             <div key={k}>
-              <p className="text-xs mb-0.5" style={{ color:tk.textMuted }}>{k}</p>
-              <p className="font-bold text-sm" style={{ color:tk.text }}>{v}</p>
+              <p className="text-xs mb-0.5" style={{ color: tk.textMuted }}>{k}</p>
+              <p className="font-bold text-sm" style={{ color: tk.text }}>{v}</p>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="rounded-2xl p-4" style={{ background:tk.surface, border:`1px solid ${tk.border}` }}>
-        <h3 className="font-black text-sm mb-2 flex items-center gap-2" style={{ color:tk.text }}>
-          <BookOpen className="w-4 h-4" style={{ color:ACCENT }} /> About
-        </h3>
-        <p className="text-sm leading-relaxed" style={{ color:tk.textSub }}>{ATHLETE.bio}</p>
-      </div>
-
-      <div className="rounded-2xl p-4" style={{ background:"linear-gradient(135deg,rgba(29,168,255,0.07),rgba(99,102,241,0.07))", border:"1px solid rgba(29,168,255,0.2)" }}>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-black text-sm flex items-center gap-2" style={{ color:tk.text }}>
-            <Flame className="w-4 h-4" style={{ color:"#10B981" }} /> Recruiter Interest
+      {/* Bio */}
+      {profile?.bio && (
+        <div className="rounded-2xl p-4" style={{ background: tk.surface, border: `1px solid ${tk.border}` }}>
+          <h3 className="font-black text-sm mb-2 flex items-center gap-2" style={{ color: tk.text }}>
+            <BookOpen className="w-4 h-4" style={{ color: ACCENT }} /> About
           </h3>
-          <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ background:"rgba(16,185,129,0.15)", color:"#10B981" }}>
-            {ATHLETE.recruiterInterest} Active Scouts
+          <p className="text-sm leading-relaxed" style={{ color: tk.textSub }}>{profile.bio}</p>
+        </div>
+      )}
+
+      {/* Recruiter interest */}
+      <div className="rounded-2xl p-4" style={{ background: "linear-gradient(135deg,rgba(29,168,255,0.07),rgba(99,102,241,0.07))", border: "1px solid rgba(29,168,255,0.2)" }}>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-black text-sm flex items-center gap-2" style={{ color: tk.text }}>
+            <Flame className="w-4 h-4" style={{ color: "#10B981" }} /> Recruiter Interest
+          </h3>
+          <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ background: "rgba(16,185,129,0.15)", color: "#10B981" }}>
+            {profile?.recruiterViews || 0} Scout Views
           </span>
         </div>
-        <div className="space-y-2">
-          {ATHLETE.recruiterViews.map((r,i) => {
-            const c = INTEREST_COLOR[r.interest]
-            return (
-              <div key={i} className="flex items-center justify-between py-2 px-3 rounded-xl"
-                style={{ background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.02)", border:`1px solid ${tk.border}` }}>
-                <div className="flex items-center gap-2">
-                  <Avatar name={r.name} size={28} />
-                  <div>
-                    <p className="text-xs font-bold" style={{ color:tk.text }}>{r.name}</p>
-                    <p className="text-xs" style={{ color:tk.textMuted }}>{r.role}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs px-2 py-0.5 rounded-full border font-semibold" style={{ background:c.bg, borderColor:c.border, color:c.color }}>
-                    {r.interest==="high"?"High":"Medium"}
-                  </span>
-                  <span className="text-xs" style={{ color:tk.textMuted }}>{r.time}</span>
-                </div>
-              </div>
-            )
-          })}
-        </div>
+        {profile?.recruiterViews > 0 ? (
+          <p className="text-sm" style={{ color: tk.textSub }}>
+            Your profile has been viewed by <span className="font-bold" style={{ color: ACCENT }}>{profile.recruiterViews} scouts</span>. Keep updating your highlights to attract more interest.
+          </p>
+        ) : (
+          <p className="text-sm" style={{ color: tk.textMuted }}>
+            No recruiter views yet. Post highlights and complete your profile to attract scouts.
+          </p>
+        )}
       </div>
 
-      <div>
-        <h3 className="font-black text-sm mb-3 flex items-center gap-2" style={{ color:tk.text }}>
-          <Video className="w-4 h-4" style={{ color:ACCENT }} /> Featured Highlight
-        </h3>
-        <HighlightCard clip={ATHLETE.highlights[0]} dark={dark} featured />
-      </div>
+      {/* Featured highlight */}
+      {featuredHighlight && (
+        <div>
+          <h3 className="font-black text-sm mb-3 flex items-center gap-2" style={{ color: tk.text }}>
+            <Video className="w-4 h-4" style={{ color: ACCENT }} /> Featured Highlight
+          </h3>
+          <HighlightCard clip={featuredHighlight} dark={dark} featured />
+        </div>
+      )}
     </div>
   )
 }
 
-function HighlightsTab({ dark }) {
+// ── Highlights Tab
+function HighlightsTab({ profile, dark }) {
+  const tk = dark ? THEME.dark : THEME.light
+  const highlights = profile?.highlights || []
+
+  if (highlights.length === 0) {
+    return (
+      <div className="py-16 text-center">
+        <Video className="w-10 h-10 mx-auto mb-3" style={{ color: tk.textMuted }} />
+        <p className="text-sm font-bold mb-1" style={{ color: tk.text }}>No highlights yet</p>
+        <p className="text-xs" style={{ color: tk.textMuted }}>Post your first highlight to attract recruiters</p>
+        <Link to="/athletepost"
+          className="inline-block mt-4 px-4 py-2 rounded-xl text-sm font-bold text-white"
+          style={{ background: ACCENT }}>
+          Post Highlights
+        </Link>
+      </div>
+    )
+  }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {ATHLETE.highlights.map((clip,i) => (
-        <div key={clip.id} className="sc-card" style={{ animationDelay:`${i*50}ms` }}>
+      {highlights.map((clip, i) => (
+        <div key={clip._id || i} className="sc-card" style={{ animationDelay: `${i * 50}ms` }}>
           <HighlightCard clip={clip} dark={dark} featured={clip.featured} />
         </div>
       ))}
@@ -218,28 +214,34 @@ function HighlightsTab({ dark }) {
   )
 }
 
-function PostsTab({ dark }) {
+// ── Posts Tab — keep mock for now
+function PostsTab({ athlete, dark }) {
   const tk = dark ? THEME.dark : THEME.light
+  const MOCK_POSTS = [
+    { id: 1, text: "Big win for the team today 🔥 Proud of every single one of my guys. Regional finals here we come!", time: "2 hours ago", likes: 84, comments: 12 },
+    { id: 2, text: "Finished my Biology mock with a solid score. Balance on and off the pitch 📚⚽", time: "3 days ago", likes: 57, comments: 8 },
+    { id: 3, text: "Honored to be named School Team Captain for the second consecutive year. The work continues 💪", time: "1 week ago", likes: 213, comments: 34 },
+  ]
   return (
     <div className="space-y-3">
-      {ATHLETE.posts.map((post,i) => (
+      {MOCK_POSTS.map((post, i) => (
         <div key={post.id} className="rounded-2xl p-4 sc-card"
-          style={{ background:tk.surface, border:`1px solid ${tk.border}`, animationDelay:`${i*60}ms` }}>
+          style={{ background: tk.surface, border: `1px solid ${tk.border}`, animationDelay: `${i * 60}ms` }}>
           <div className="flex items-center gap-3 mb-3">
-            <Avatar name={ATHLETE.name} size={36} />
+            <Avatar name={athlete?.name || "Athlete"} size={36} />
             <div>
               <div className="flex items-center gap-1.5">
-                <p className="font-bold text-sm" style={{ color:tk.text }}>{ATHLETE.name}</p>
-                <span style={{ color:ACCENT }}>✦</span>
+                <p className="font-bold text-sm" style={{ color: tk.text }}>{athlete?.name || "Athlete"}</p>
+                {athlete?.verified && <span style={{ color: ACCENT }}>✦</span>}
               </div>
-              <p className="text-xs" style={{ color:tk.textMuted }}>{post.time}</p>
+              <p className="text-xs" style={{ color: tk.textMuted }}>{post.time}</p>
             </div>
           </div>
-          <p className="text-sm leading-relaxed mb-3" style={{ color:tk.textSub }}>{post.text}</p>
-          <div className="flex items-center gap-4 pt-2" style={{ borderTop:`1px solid ${tk.border}` }}>
-            <button className="flex items-center gap-1.5 text-xs" style={{ color:tk.textMuted }}><Heart className="w-3.5 h-3.5" />{post.likes}</button>
-            <button className="flex items-center gap-1.5 text-xs" style={{ color:tk.textMuted }}><MessageCircle className="w-3.5 h-3.5" />{post.comments}</button>
-            <button className="flex items-center gap-1.5 text-xs ml-auto" style={{ color:tk.textMuted }}><Share2 className="w-3.5 h-3.5" /></button>
+          <p className="text-sm leading-relaxed mb-3" style={{ color: tk.textSub }}>{post.text}</p>
+          <div className="flex items-center gap-4 pt-2" style={{ borderTop: `1px solid ${tk.border}` }}>
+            <button className="flex items-center gap-1.5 text-xs" style={{ color: tk.textMuted }}><Heart className="w-3.5 h-3.5" />{post.likes}</button>
+            <button className="flex items-center gap-1.5 text-xs" style={{ color: tk.textMuted }}><MessageCircle className="w-3.5 h-3.5" />{post.comments}</button>
+            <button className="flex items-center gap-1.5 text-xs ml-auto" style={{ color: tk.textMuted }}><Share2 className="w-3.5 h-3.5" /></button>
           </div>
         </div>
       ))}
@@ -247,80 +249,126 @@ function PostsTab({ dark }) {
   )
 }
 
-function AchievementsTab({ dark }) {
+// ── Achievements Tab 
+function AchievementsTab({ profile, dark }) {
   const tk = dark ? THEME.dark : THEME.light
+  const achievements = profile?.achievements || []
+
+  if (achievements.length === 0) {
+    return (
+      <div className="py-16 text-center">
+        <Award className="w-10 h-10 mx-auto mb-3" style={{ color: tk.textMuted }} />
+        <p className="text-sm font-bold mb-1" style={{ color: tk.text }}>No achievements yet</p>
+        <p className="text-xs" style={{ color: tk.textMuted }}>Add achievements in your profile settings</p>
+        <Link to="/athletesettings"
+          className="inline-block mt-4 px-4 py-2 rounded-xl text-sm font-bold text-white"
+          style={{ background: ACCENT }}>
+          Edit Profile
+        </Link>
+      </div>
+    )
+  }
+
+  const ACHIEVEMENT_COLORS = ["#F59E0B", "#10B981", "#1DA8FF", "#A855F7", "#F97316", "#06B6D4"]
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      {ATHLETE.achievements.map((a,i) => (
-        <div key={i} className="flex items-center gap-4 rounded-2xl p-4 sc-card"
-          style={{ background:tk.surface, border:`1px solid ${tk.border}`, animationDelay:`${i*60}ms` }}>
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl flex-shrink-0"
-            style={{ background:`${a.color}18`, border:`1px solid ${a.color}30` }}>
-            {a.icon}
+      {achievements.map((a, i) => {
+        const color = ACHIEVEMENT_COLORS[i % ACHIEVEMENT_COLORS.length]
+        return (
+          <div key={a._id || i} className="flex items-center gap-4 rounded-2xl p-4 sc-card"
+            style={{ background: tk.surface, border: `1px solid ${tk.border}`, animationDelay: `${i * 60}ms` }}>
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl flex-shrink-0"
+              style={{ background: `${color}18`, border: `1px solid ${color}30` }}>
+              🏆
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-sm leading-snug" style={{ color: tk.text }}>{a.title}</p>
+              {a.year && (
+                <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: tk.textMuted }}>
+                  <Calendar className="w-3 h-3" />{a.year}
+                </p>
+              )}
+            </div>
+            <Award className="w-4 h-4 flex-shrink-0" style={{ color }} />
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="font-bold text-sm leading-snug" style={{ color:tk.text }}>{a.title}</p>
-            <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color:tk.textMuted }}><Calendar className="w-3 h-3" />{a.year}</p>
-          </div>
-          <Award className="w-4 h-4 flex-shrink-0" style={{ color:a.color }} />
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
 
-function ProfileHeader({ dark, isOwner }) {
+// ── Profile Header
+function ProfileHeader({ athlete, profile, dark, isOwner }) {
   const [following, setFollowing] = useState(false)
   const tk = dark ? THEME.dark : THEME.light
+
+  const name = athlete ? `${athlete.firstName} ${athlete.lastName}` : "Athlete"
+  const handle = profile?.handle || `@${athlete?.firstName?.toLowerCase() || "athlete"}`
+  const sport = profile?.sport || "—"
+  const position = profile?.position || "—"
+  const school = profile?.school || "—"
+  const location = profile?.region || "—"
+  const classOf = profile?.classOf || "—"
+  const followers = profile?.followers || 0
+  const following2 = profile?.following || 0
+  const views = profile?.profileViews || 0
+  const verified = profile?.verified || false
+  const recruiterViews = profile?.recruiterViews || 0
+
   return (
     <div className="relative mb-6">
-      <div className="w-full overflow-hidden" style={{ height:156 }}>
-        <div className="w-full h-full relative" style={{ background:"linear-gradient(135deg,#0D1117 0%,#1a2744 40%,#0f2d4a 70%,#0D1117 100%)" }}>
-          <div className="absolute inset-0 opacity-20" style={{ backgroundImage:"radial-gradient(circle,rgba(29,168,255,0.4) 1px,transparent 1px)", backgroundSize:"28px 28px" }} />
-          <div className="absolute inset-0" style={{ background:"linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.6) 100%)" }} />
-          <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background:`linear-gradient(90deg,transparent,${ACCENT},transparent)` }} />
+      {/* Cover */}
+      <div className="w-full overflow-hidden" style={{ height: 156 }}>
+        <div className="w-full h-full relative" style={{ background: "linear-gradient(135deg,#0D1117 0%,#1a2744 40%,#0f2d4a 70%,#0D1117 100%)" }}>
+          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle,rgba(29,168,255,0.4) 1px,transparent 1px)", backgroundSize: "28px 28px" }} />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.6) 100%)" }} />
+          <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(90deg,transparent,${ACCENT},transparent)` }} />
         </div>
       </div>
 
       <div className="px-4 sm:px-6">
         <div className="flex items-end justify-between -mt-12 mb-3 relative z-10">
           <div className="relative">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl p-0.5" style={{ background:`linear-gradient(135deg,${ACCENT},#6366F1)` }}>
-              <div className="w-full h-full rounded-xl overflow-hidden flex items-center justify-center" style={{ background:tk.surface }}>
-                <Avatar name={ATHLETE.name} size={88} />
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl p-0.5" style={{ background: `linear-gradient(135deg,${ACCENT},#6366F1)` }}>
+              <div className="w-full h-full rounded-xl overflow-hidden flex items-center justify-center" style={{ background: tk.surface }}>
+                <Avatar name={name} size={88} />
               </div>
             </div>
-            {ATHLETE.verified && (
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center z-10" style={{ background:ACCENT, border:`3px solid ${tk.page}` }}>
-                <span className="text-white font-bold" style={{ fontSize:9 }}>✦</span>
+            {verified && (
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center z-10"
+                style={{ background: ACCENT, border: `3px solid ${tk.page}` }}>
+                <span className="text-white font-bold" style={{ fontSize: 9 }}>✦</span>
               </div>
             )}
           </div>
 
           <div className="flex items-center gap-2 pb-1">
             {isOwner ? (
-              <button className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold border transition-all"
-                style={{ borderColor:ACCENT, color:ACCENT }}
-                onMouseEnter={e => e.currentTarget.style.background="rgba(29,168,255,0.08)"}
-                onMouseLeave={e => e.currentTarget.style.background="transparent"}>
+              <Link to="/athletesettings"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold border transition-all"
+                style={{ borderColor: ACCENT, color: ACCENT }}
+                onMouseEnter={e => e.currentTarget.style.background = "rgba(29,168,255,0.08)"}
+                onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                 <Edit3 className="w-3.5 h-3.5" /> Edit Profile
-              </button>
+              </Link>
             ) : (
               <>
                 <button onClick={() => setFollowing(!following)}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold border transition-all"
-                  style={{ background:following?"transparent":ACCENT, color:following?ACCENT:"#fff", borderColor:ACCENT }}>
-                  <UserPlus className="w-3.5 h-3.5" />{following?"Following":"Follow"}
+                  style={{ background: following ? "transparent" : ACCENT, color: following ? ACCENT : "#fff", borderColor: ACCENT }}>
+                  <UserPlus className="w-3.5 h-3.5" />{following ? "Following" : "Follow"}
                 </button>
-                <button className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold border" style={{ borderColor:tk.border, color:tk.textSub }}>
+                <button className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold border"
+                  style={{ borderColor: tk.border, color: tk.textSub }}>
                   <MessageCircle className="w-3.5 h-3.5" /> Message
                 </button>
               </>
             )}
             <button className="w-9 h-9 rounded-xl flex items-center justify-center border transition-all"
-              style={{ borderColor:tk.border, color:tk.textMuted }}
-              onMouseEnter={e => e.currentTarget.style.borderColor=ACCENT}
-              onMouseLeave={e => e.currentTarget.style.borderColor=tk.border}>
+              style={{ borderColor: tk.border, color: tk.textMuted }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = ACCENT}
+              onMouseLeave={e => e.currentTarget.style.borderColor = tk.border}>
               <Share2 className="w-4 h-4" />
             </button>
           </div>
@@ -328,33 +376,38 @@ function ProfileHeader({ dark, isOwner }) {
 
         <div className="mb-4">
           <div className="flex flex-wrap items-center gap-2 mb-1">
-            <h1 className="font-black text-xl sm:text-2xl" style={{ color:tk.text }}>{ATHLETE.name}</h1>
-            {ATHLETE.verified && (
-              <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background:"rgba(29,168,255,0.12)", color:ACCENT }}>✦ Verified Athlete</span>
+            <h1 className="font-black text-xl sm:text-2xl" style={{ color: tk.text }}>{name}</h1>
+            {verified && (
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+                style={{ background: "rgba(29,168,255,0.12)", color: ACCENT }}>
+                ✦ Verified Athlete
+              </span>
             )}
           </div>
-          <p className="text-sm mb-2" style={{ color:tk.textMuted }}>{ATHLETE.handle}</p>
+          <p className="text-sm mb-2" style={{ color: tk.textMuted }}>{handle}</p>
           <div className="flex flex-wrap items-center gap-3 mb-3">
-            <SportBadge sport={ATHLETE.sport} />
-            <span className="text-sm font-semibold" style={{ color:tk.textSub }}>{ATHLETE.position}</span>
+            <SportBadge sport={sport} />
+            <span className="text-sm font-semibold" style={{ color: tk.textSub }}>{position}</span>
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <span className="text-xs flex items-center gap-1" style={{ color:tk.textMuted }}><GraduationCap className="w-3.5 h-3.5" />{ATHLETE.school}</span>
-            <span className="text-xs flex items-center gap-1" style={{ color:tk.textMuted }}><MapPin className="w-3.5 h-3.5" />{ATHLETE.location}</span>
-            <span className="text-xs flex items-center gap-1" style={{ color:tk.textMuted }}><Calendar className="w-3.5 h-3.5" />Class of {ATHLETE.classOf}</span>
+            <span className="text-xs flex items-center gap-1" style={{ color: tk.textMuted }}><GraduationCap className="w-3.5 h-3.5" />{school}</span>
+            <span className="text-xs flex items-center gap-1" style={{ color: tk.textMuted }}><MapPin className="w-3.5 h-3.5" />{location}</span>
+            <span className="text-xs flex items-center gap-1" style={{ color: tk.textMuted }}><Calendar className="w-3.5 h-3.5" />Class of {classOf}</span>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-6 py-3" style={{ borderTop:`1px solid ${tk.border}`, borderBottom:`1px solid ${tk.border}` }}>
-          {[[ATHLETE.followers,"Followers"],[ATHLETE.following,"Following"],[ATHLETE.profileViews,"Profile Views"]].map(([val,label]) => (
+        <div className="flex flex-wrap items-center gap-6 py-3"
+          style={{ borderTop: `1px solid ${tk.border}`, borderBottom: `1px solid ${tk.border}` }}>
+          {[[followers, "Followers"], [following2, "Following"], [views, "Profile Views"]].map(([val, label]) => (
             <div key={label} className="text-center">
-              <p className="font-black text-base sm:text-lg leading-none" style={{ color:tk.text }}>{val}</p>
-              <p className="text-xs mt-0.5" style={{ color:tk.textMuted }}>{label}</p>
+              <p className="font-black text-base sm:text-lg leading-none" style={{ color: tk.text }}>{val}</p>
+              <p className="text-xs mt-0.5" style={{ color: tk.textMuted }}>{label}</p>
             </div>
           ))}
-          <div className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full border" style={{ background:"rgba(16,185,129,0.1)", borderColor:"rgba(16,185,129,0.3)" }}>
-            <Flame className="w-3.5 h-3.5" style={{ color:"#10B981" }} />
-            <span className="text-xs font-bold" style={{ color:"#10B981" }}>{ATHLETE.recruiterInterest} Scouts</span>
+          <div className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full border"
+            style={{ background: "rgba(16,185,129,0.1)", borderColor: "rgba(16,185,129,0.3)" }}>
+            <Flame className="w-3.5 h-3.5" style={{ color: "#10B981" }} />
+            <span className="text-xs font-bold" style={{ color: "#10B981" }}>{recruiterViews} Scout Views</span>
           </div>
         </div>
       </div>
@@ -362,21 +415,135 @@ function ProfileHeader({ dark, isOwner }) {
   )
 }
 
-export default function AthleteProfile({ isOwner = true }) {
-  const [dark, setDark]             = useState(false)
-  const [activeTab, setActive]      = useState("profile")
+// ── Main Page 
+export default function AthleteProfile() {
+  const navigate = useNavigate()
+  const [dark, setDark] = useState(false)
+  const [activeTab, setActive] = useState("profile")
   const [profileTab, setProfileTab] = useState("Overview")
+
+  // Real data state
+  const [currentUser, setCurrentUser] = useState(null)
+  const [athleteProfile, setAthleteProfile] = useState(null)
+  const [loadingProfile, setLoadingProfile] = useState(true)
+
   const tk = dark ? THEME.dark : THEME.light
 
+  useEffect(() => {
+    if (!isLoggedIn()) {
+      navigate("/signin")
+      return
+    }
+
+    const user = getCurrentUser()
+    setCurrentUser(user)
+
+    const fetchProfile = async () => {
+      try {
+        const { data } = await getAthleteById(user.id)
+        setAthleteProfile(data.profile)
+      } catch (err) {
+        if (err.response?.status !== 404) {
+          toast.error("Failed to load profile")
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProfile()
+  }, [navigate])
+
+  // Build athlete object for components
+  const athleteObj = currentUser ? {
+    firstName: currentUser.firstName,
+    lastName: currentUser.lastName,
+    name: `${currentUser.firstName} ${currentUser.lastName}`,
+    email: currentUser.email,
+    verified: athleteProfile?.verified || false,
+  } : null
+
+  // Loading screen
+  // if (loadingProfile) {
+  //   return (
+  //     <div
+  //       className="min-h-screen flex flex-col items-center justify-center"
+  //       style={{ background: tk.page, fontFamily: "'DM Sans','Segoe UI',sans-serif" }}
+  //     >
+  //       <style>{`
+  //       @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap');
+  //       @keyframes pulse-ring {
+  //         0%   { transform: scale(0.85); opacity: 0.6; }
+  //         50%  { transform: scale(1.05); opacity: 1;   }
+  //         100% { transform: scale(0.85); opacity: 0.6; }
+  //       }
+  //       @keyframes fade-up {
+  //         0%   { opacity: 0; transform: translateY(12px); }
+  //         100% { opacity: 1; transform: translateY(0);    }
+  //       }
+  //       @keyframes shimmer {
+  //         0%   { background-position: -200% center; }
+  //         100% { background-position:  200% center; }
+  //       }
+  //       .logo-pulse   { animation: pulse-ring 2s ease-in-out infinite; }
+  //       .fade-up      { animation: fade-up 0.6s ease forwards; }
+  //       .shimmer-text {
+  //         background: linear-gradient(90deg, #1DA8FF 0%, #ffffff 40%, #1DA8FF 80%);
+  //         background-size: 200% auto;
+  //         -webkit-background-clip: text;
+  //         -webkit-text-fill-color: transparent;
+  //         background-clip: text;
+  //         animation: shimmer 2.5s linear infinite;
+  //       }
+  //       .dot-bounce {
+  //         display: inline-block;
+  //         animation: dot-bounce 1.4s ease-in-out infinite;
+  //       }
+  //       .dot-bounce:nth-child(2) { animation-delay: 0.2s; }
+  //       .dot-bounce:nth-child(3) { animation-delay: 0.4s; }
+  //       @keyframes dot-bounce {
+  //         0%, 80%, 100% { transform: translateY(0);    opacity: 0.4; }
+  //         40%            { transform: translateY(-6px); opacity: 1;   }
+  //       }
+  //     `}</style>
+  //       {/* Brand name */}
+  //       <div className="fade-up text-center" style={{ animationDelay: "50s" }}>
+  //         <h1
+  //           className="shimmer-text font-black text-2xl tracking-wide mb-1"
+  //           style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.08em" }}
+  //         >
+  //           SPORTSCONNECT
+  //         </h1>
+  //         {/*  */}
+  //       </div>
+
+  //       {/* Loading dots */}
+  //       <div className="fade-up flex items-center gap-1" style={{ animationDelay: "50s" }}>
+  //         <span className="dot-bounce w-2 h-2 rounded-full inline-block"
+  //           style={{ background: ACCENT }} />
+  //         <span className="dot-bounce w-2 h-2 rounded-full inline-block"
+  //           style={{ background: ACCENT }} />
+  //         <span className="dot-bounce w-2 h-2 rounded-full inline-block"
+  //           style={{ background: ACCENT }} />
+  //       </div>
+
+  //       {/* Loading text */}
+  //       <p className="fade-up text-xs mt-3" style={{ color: tk.textMuted, animationDelay: "50s" }}>
+  //         Loading your dashboard...
+  //       </p>
+  //     </div>
+  //   )
+  // }
   const tabContent = {
-    Overview:     <OverviewTab dark={dark} />,
-    Highlights:   <HighlightsTab dark={dark} />,
-    Posts:        <PostsTab dark={dark} />,
-    Achievements: <AchievementsTab dark={dark} />,
+    Overview: <OverviewTab athlete={athleteObj} profile={athleteProfile} dark={dark} />,
+    Highlights: <HighlightsTab profile={athleteProfile} dark={dark} />,
+    Posts: <PostsTab athlete={athleteObj} dark={dark} />,
+    Achievements: <AchievementsTab profile={athleteProfile} dark={dark} />,
   }
 
   return (
-    <div className="min-h-screen transition-colors duration-300" style={{ background:tk.page, fontFamily:"'DM Sans','Segoe UI',sans-serif" }}>
+    <div className="min-h-screen transition-colors duration-300"
+      style={{ background: tk.page, fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap');
         .sc-card { animation:scIn .3s cubic-bezier(.4,0,.2,1) both; }
@@ -390,23 +557,32 @@ export default function AthleteProfile({ isOwner = true }) {
           <DesktopSideNav active={activeTab} setActive={setActive} dark={dark} />
         </div>
 
-        <main className="flex-1 min-w-0 pb-28 lg:pb-12" style={{ borderLeft:`1px solid ${tk.border}`, borderRight:`1px solid ${tk.border}` }}>
-          <ProfileHeader dark={dark} isOwner={isOwner} />
+        <main className="flex-1 min-w-0 pb-28 lg:pb-12"
+          style={{ borderLeft: `1px solid ${tk.border}`, borderRight: `1px solid ${tk.border}` }}>
+
+          <ProfileHeader
+            athlete={athleteObj}
+            profile={athleteProfile}
+            dark={dark}
+            isOwner={true}
+          />
 
           <div className="px-4 sm:px-6">
-            <div className="flex gap-1 mb-6 overflow-x-auto pb-1" style={{ scrollbarWidth:"none" }}>
+            <div className="flex gap-1 mb-6 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
               {TABS.map(tab => {
                 const active = profileTab === tab
                 return (
                   <button key={tab} onClick={() => setProfileTab(tab)}
                     className="flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all border"
-                    style={{ background:active?ACCENT:"transparent", color:active?"#fff":tk.textMuted, borderColor:active?ACCENT:tk.border }}>
+                    style={{ background: active ? ACCENT : "transparent", color: active ? "#fff" : tk.textMuted, borderColor: active ? ACCENT : tk.border }}>
                     {tab}
                   </button>
                 )
               })}
             </div>
-            <div key={profileTab} className="sc-card pb-6">{tabContent[profileTab]}</div>
+            <div key={profileTab} className="sc-card pb-6">
+              {tabContent[profileTab]}
+            </div>
           </div>
         </main>
       </div>

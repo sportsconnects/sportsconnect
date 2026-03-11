@@ -184,7 +184,7 @@ export default function RecruiterDashboard() {
           }
         `}</style>
 
-        <div className="sc-fadeup text-center" style={{ animationDelay: "50s" }}>
+        <div className="sc-fadeup text-center" style={{ animationDelay: "10s" }}>
           <h1 className="sc-shimmer font-black text-2xl mb-1"
             style={{ fontFamily:"'Bebas Neue',sans-serif", letterSpacing:"0.08em" }}>
             SPORTSCONNECT
@@ -195,12 +195,12 @@ export default function RecruiterDashboard() {
           </p>
         </div>
 
-        <div className="sc-fadeup flex items-center gap-1">
+        <div className="sc-fadeup flex items-center gap-1" style={{ animationDelay: "10s" }}>
           <span className="dot w-2 h-2 rounded-full" style={{ background:ACCENT }} />
           <span className="dot w-2 h-2 rounded-full" style={{ background:ACCENT }} />
           <span className="dot w-2 h-2 rounded-full" style={{ background:ACCENT }} />
         </div>
-        <p className="sc-fadeup text-xs mt-3" style={{ color:tk.textMuted }}>
+        <p className="sc-fadeup text-xs mt-3" style={{ color: tk.textMuted, animationDelay: "10s" }}>
           Loading your dashboard...
         </p>
       </div>

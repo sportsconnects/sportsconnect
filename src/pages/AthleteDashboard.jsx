@@ -202,7 +202,7 @@ export default function AthleteDashboard() {
         }
       `}</style>
         {/* Brand name */}
-        <div className="fade-up text-center" style={{ animationDelay: "50s" }}>
+        <div className="fade-up text-center" style={{ animationDelay: "10s" }}>
           <h1
             className="shimmer-text font-black text-2xl tracking-wide mb-1"
             style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.08em" }}
@@ -213,7 +213,7 @@ export default function AthleteDashboard() {
         </div>
 
         {/* Loading dots */}
-        <div className="fade-up flex items-center gap-1" style={{ animationDelay: "0.3s" }}>
+        <div className="fade-up flex items-center gap-1" style={{ animationDelay: "10s" }}>
           <span className="dot-bounce w-2 h-2 rounded-full inline-block"
             style={{ background: ACCENT }} />
           <span className="dot-bounce w-2 h-2 rounded-full inline-block"
@@ -223,7 +223,7 @@ export default function AthleteDashboard() {
         </div>
 
         {/* Loading text */}
-        <p className="fade-up text-xs mt-3" style={{ color: tk.textMuted, animationDelay: "0.4s" }}>
+        <p className="fade-up text-xs mt-3" style={{ color: tk.textMuted, animationDelay: "10s" }}>
           Loading your dashboard...
         </p>
       </div>
