@@ -14,7 +14,7 @@ import {
   TrendingUp, Award, BookOpen, Calendar, Ruler,
   MessageCircle, UserPlus, Video
 } from "lucide-react"
-import { getAthleteById, getCurrentUser, isLoggedIn } from "../../api/client"
+import { getAthleteById, getCurrentUser, isLoggedIn, getAthletePostsById, toggleFollow, getFollowStatus, getFollowers, getFollowing } from "../../api/client"
 
 const ACCENT = "#1DA8FF"
 
@@ -215,33 +215,67 @@ function HighlightsTab({ profile, dark }) {
 }
 
 // ── Posts Tab — keep mock for now
-function PostsTab({ athlete, dark }) {
+function PostsTab({ athlete, dark, posts, loading }) {
   const tk = dark ? THEME.dark : THEME.light
-  const MOCK_POSTS = [
-    { id: 1, text: "Big win for the team today 🔥 Proud of every single one of my guys. Regional finals here we come!", time: "2 hours ago", likes: 84, comments: 12 },
-    { id: 2, text: "Finished my Biology mock with a solid score. Balance on and off the pitch 📚⚽", time: "3 days ago", likes: 57, comments: 8 },
-    { id: 3, text: "Honored to be named School Team Captain for the second consecutive year. The work continues 💪", time: "1 week ago", likes: 213, comments: 34 },
-  ]
+
+  if (loading) {
+    return <div className="py-16 text-center text-sm" style={{ color: tk.textMuted }}>Loading posts...</div>
+  }
+
+  if (!posts.length) {
+    return (
+      <div className="py-16 text-center">
+        <Video className="w-10 h-10 mx-auto mb-3" style={{ color: tk.textMuted }} />
+        <p className="text-sm font-bold mb-1" style={{ color: tk.text }}>No posts yet</p>
+        <p className="text-xs" style={{ color: tk.textMuted }}>Share your highlights to get noticed</p>
+        <Link to="/athletepost"
+          className="inline-block mt-4 px-4 py-2 rounded-xl text-sm font-bold text-white"
+          style={{ background: ACCENT }}>
+          Create Post
+        </Link>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-3">
-      {MOCK_POSTS.map((post, i) => (
-        <div key={post.id} className="rounded-2xl p-4 sc-card"
+      {posts.map((post, i) => (
+        <div key={post._id} className="rounded-2xl p-4 sc-card"
           style={{ background: tk.surface, border: `1px solid ${tk.border}`, animationDelay: `${i * 60}ms` }}>
           <div className="flex items-center gap-3 mb-3">
             <Avatar name={athlete?.name || "Athlete"} size={36} />
             <div>
               <div className="flex items-center gap-1.5">
-                <p className="font-bold text-sm" style={{ color: tk.text }}>{athlete?.name || "Athlete"}</p>
+                <p className="font-bold text-sm" style={{ color: tk.text }}>{athlete?.name}</p>
                 {athlete?.verified && <span style={{ color: ACCENT }}>✦</span>}
               </div>
-              <p className="text-xs" style={{ color: tk.textMuted }}>{post.time}</p>
+              <p className="text-xs" style={{ color: tk.textMuted }}>
+                {post.createdAt ? new Date(post.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : ""}
+              </p>
             </div>
           </div>
-          <p className="text-sm leading-relaxed mb-3" style={{ color: tk.textSub }}>{post.text}</p>
+          {post.caption && (
+            <p className="text-sm leading-relaxed mb-3" style={{ color: tk.textSub }}>{post.caption}</p>
+          )}
+          {post.videoId && (
+            <div className="rounded-xl overflow-hidden mb-3" style={{ aspectRatio: "16/9" }}>
+              <iframe
+                src={`https://www.youtube.com/embed/${post.videoId}?rel=0&modestbranding=1`}
+                className="w-full h-full"
+                allowFullScreen
+              />
+            </div>
+          )}
           <div className="flex items-center gap-4 pt-2" style={{ borderTop: `1px solid ${tk.border}` }}>
-            <button className="flex items-center gap-1.5 text-xs" style={{ color: tk.textMuted }}><Heart className="w-3.5 h-3.5" />{post.likes}</button>
-            <button className="flex items-center gap-1.5 text-xs" style={{ color: tk.textMuted }}><MessageCircle className="w-3.5 h-3.5" />{post.comments}</button>
-            <button className="flex items-center gap-1.5 text-xs ml-auto" style={{ color: tk.textMuted }}><Share2 className="w-3.5 h-3.5" /></button>
+            <span className="flex items-center gap-1.5 text-xs" style={{ color: tk.textMuted }}>
+              <Heart className="w-3.5 h-3.5" />{post.likes?.length ?? 0}
+            </span>
+            <span className="flex items-center gap-1.5 text-xs" style={{ color: tk.textMuted }}>
+              <MessageCircle className="w-3.5 h-3.5" />{post.comments?.length ?? 0}
+            </span>
+            <span className="flex items-center gap-1.5 text-xs" style={{ color: tk.textMuted }}>
+              <Eye className="w-3.5 h-3.5" />{post.views ?? 0}
+            </span>
           </div>
         </div>
       ))}
@@ -299,8 +333,12 @@ function AchievementsTab({ profile, dark }) {
 }
 
 // ── Profile Header
-function ProfileHeader({ athlete, profile, dark, isOwner }) {
+function ProfileHeader({ athlete, profile, dark, isOwner, athleteId }) {
   const [following, setFollowing] = useState(false)
+  const [followLoading, setFollowLoading] = useState(false)
+  const [followerCount, setFollowerCount] = useState(profile?.followers || 0)
+  const [followingCount, setFollowingCount] = useState(profile?.following || 0)
+
   const tk = dark ? THEME.dark : THEME.light
 
   const name = athlete ? `${athlete.firstName} ${athlete.lastName}` : "Athlete"
@@ -315,6 +353,36 @@ function ProfileHeader({ athlete, profile, dark, isOwner }) {
   const views = profile?.profileViews || 0
   const verified = profile?.verified || false
   const recruiterViews = profile?.recruiterViews || 0
+
+  useEffect(() => {
+    if (isOwner || !athleteId) return
+
+    // Get follow status
+    getFollowStatus(athleteId)
+      .then(({ data }) => setFollowing(data.isFollowing))
+      .catch(() => { })
+
+    // Get real follower/following counts
+    Promise.all([getFollowers(athleteId), getFollowing(athleteId)])
+      .then(([f1, f2]) => {
+        setFollowerCount(f1.data.count ?? f1.data.followers?.length ?? 0)
+        setFollowingCount(f2.data.count ?? f2.data.following?.length ?? 0)
+      })
+      .catch(() => { })
+  }, [athleteId, isOwner])
+
+  const handleFollow = async () => {
+    setFollowLoading(true)
+    try {
+      await toggleFollow(athleteId)
+      setFollowing(prev => !prev)
+      setFollowerCount(c => following ? c - 1 : c + 1)
+    } catch {
+      toast.error("Failed to update follow")
+    } finally {
+      setFollowLoading(false)
+    }
+  }
 
   return (
     <div className="relative mb-6">
@@ -354,7 +422,7 @@ function ProfileHeader({ athlete, profile, dark, isOwner }) {
               </Link>
             ) : (
               <>
-                <button onClick={() => setFollowing(!following)}
+                <button onClick={handleFollow} disabled={followLoading}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold border transition-all"
                   style={{ background: following ? "transparent" : ACCENT, color: following ? ACCENT : "#fff", borderColor: ACCENT }}>
                   <UserPlus className="w-3.5 h-3.5" />{following ? "Following" : "Follow"}
@@ -398,7 +466,7 @@ function ProfileHeader({ athlete, profile, dark, isOwner }) {
 
         <div className="flex flex-wrap items-center gap-6 py-3"
           style={{ borderTop: `1px solid ${tk.border}`, borderBottom: `1px solid ${tk.border}` }}>
-          {[[followers, "Followers"], [following2, "Following"], [views, "Profile Views"]].map(([val, label]) => (
+          {[[followerCount, "Followers"], [followingCount, "Following"], [views, "Profile Views"]].map(([val, label]) => (
             <div key={label} className="text-center">
               <p className="font-black text-base sm:text-lg leading-none" style={{ color: tk.text }}>{val}</p>
               <p className="text-xs mt-0.5" style={{ color: tk.textMuted }}>{label}</p>
@@ -426,6 +494,8 @@ export default function AthleteProfile() {
   const [currentUser, setCurrentUser] = useState(null)
   const [athleteProfile, setAthleteProfile] = useState(null)
   const [loadingProfile, setLoadingProfile] = useState(true)
+  const [posts, setPosts] = useState([])
+  const [loadingPosts, setLoadingPosts] = useState(false)
 
   const tk = dark ? THEME.dark : THEME.light
 
@@ -447,11 +517,24 @@ export default function AthleteProfile() {
           toast.error("Failed to load profile")
         }
       } finally {
-        setLoading(false)
+        setLoadingProfile(false)
       }
     }
 
     fetchProfile()
+
+    const fetchPosts = async () => {
+      setLoadingPosts(true)
+      try {
+        const { data } = await getAthletePostsById(user.id)
+        setPosts(data.posts || [])
+      } catch {
+        // non-critical, silently fail
+      } finally {
+        setLoadingPosts(false)
+      }
+    }
+    fetchPosts()
   }, [navigate])
 
   // Build athlete object for components
@@ -463,81 +546,11 @@ export default function AthleteProfile() {
     verified: athleteProfile?.verified || false,
   } : null
 
-  // Loading screen
-  // if (loadingProfile) {
-  //   return (
-  //     <div
-  //       className="min-h-screen flex flex-col items-center justify-center"
-  //       style={{ background: tk.page, fontFamily: "'DM Sans','Segoe UI',sans-serif" }}
-  //     >
-  //       <style>{`
-  //       @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap');
-  //       @keyframes pulse-ring {
-  //         0%   { transform: scale(0.85); opacity: 0.6; }
-  //         50%  { transform: scale(1.05); opacity: 1;   }
-  //         100% { transform: scale(0.85); opacity: 0.6; }
-  //       }
-  //       @keyframes fade-up {
-  //         0%   { opacity: 0; transform: translateY(12px); }
-  //         100% { opacity: 1; transform: translateY(0);    }
-  //       }
-  //       @keyframes shimmer {
-  //         0%   { background-position: -200% center; }
-  //         100% { background-position:  200% center; }
-  //       }
-  //       .logo-pulse   { animation: pulse-ring 2s ease-in-out infinite; }
-  //       .fade-up      { animation: fade-up 0.6s ease forwards; }
-  //       .shimmer-text {
-  //         background: linear-gradient(90deg, #1DA8FF 0%, #ffffff 40%, #1DA8FF 80%);
-  //         background-size: 200% auto;
-  //         -webkit-background-clip: text;
-  //         -webkit-text-fill-color: transparent;
-  //         background-clip: text;
-  //         animation: shimmer 2.5s linear infinite;
-  //       }
-  //       .dot-bounce {
-  //         display: inline-block;
-  //         animation: dot-bounce 1.4s ease-in-out infinite;
-  //       }
-  //       .dot-bounce:nth-child(2) { animation-delay: 0.2s; }
-  //       .dot-bounce:nth-child(3) { animation-delay: 0.4s; }
-  //       @keyframes dot-bounce {
-  //         0%, 80%, 100% { transform: translateY(0);    opacity: 0.4; }
-  //         40%            { transform: translateY(-6px); opacity: 1;   }
-  //       }
-  //     `}</style>
-  //       {/* Brand name */}
-  //       <div className="fade-up text-center" style={{ animationDelay: "50s" }}>
-  //         <h1
-  //           className="shimmer-text font-black text-2xl tracking-wide mb-1"
-  //           style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.08em" }}
-  //         >
-  //           SPORTSCONNECT
-  //         </h1>
-  //         {/*  */}
-  //       </div>
 
-  //       {/* Loading dots */}
-  //       <div className="fade-up flex items-center gap-1" style={{ animationDelay: "50s" }}>
-  //         <span className="dot-bounce w-2 h-2 rounded-full inline-block"
-  //           style={{ background: ACCENT }} />
-  //         <span className="dot-bounce w-2 h-2 rounded-full inline-block"
-  //           style={{ background: ACCENT }} />
-  //         <span className="dot-bounce w-2 h-2 rounded-full inline-block"
-  //           style={{ background: ACCENT }} />
-  //       </div>
-
-  //       {/* Loading text */}
-  //       <p className="fade-up text-xs mt-3" style={{ color: tk.textMuted, animationDelay: "50s" }}>
-  //         Loading your dashboard...
-  //       </p>
-  //     </div>
-  //   )
-  // }
   const tabContent = {
     Overview: <OverviewTab athlete={athleteObj} profile={athleteProfile} dark={dark} />,
     Highlights: <HighlightsTab profile={athleteProfile} dark={dark} />,
-    Posts: <PostsTab athlete={athleteObj} dark={dark} />,
+    Posts: <PostsTab athlete={athleteObj} dark={dark} posts={posts} loading={loadingPosts} />,
     Achievements: <AchievementsTab profile={athleteProfile} dark={dark} />,
   }
 
@@ -565,6 +578,7 @@ export default function AthleteProfile() {
             profile={athleteProfile}
             dark={dark}
             isOwner={true}
+            athleteId={currentUser?.id}
           />
 
           <div className="px-4 sm:px-6">

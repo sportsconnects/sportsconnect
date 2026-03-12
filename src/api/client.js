@@ -118,3 +118,43 @@ export const isRecruiter = () => {
   const user = getCurrentUser();
   return user?.role === "recruiter";
 };
+
+// -- Posts
+export const getFeedPosts = (params) =>
+  apiClient.get("/posts/feed", { params })
+
+export const getAthletePostsById = (userId) =>
+  apiClient.get(`/posts/athlete/${userId}`)
+
+export const createPost = (data) =>
+  apiClient.post("/posts", data)
+
+export const likePost = (postId) =>
+  apiClient.patch(`/posts/${postId}/like`)
+
+export const commentOnPost = (postId, data) =>
+  apiClient.post(`/posts/${postId}/comment`, data)
+
+export const deletePost = (postId) =>
+  apiClient.delete(`/posts/${postId}`)
+
+// ── Follows
+export const toggleFollow = (userId) =>
+  apiClient.post(`/follows/${userId}`)
+
+export const getFollowStatus = (userId) =>
+  apiClient.get(`/follows/status/${userId}`)
+
+export const getFollowing = () =>
+  apiClient.get("/follows/following")
+
+export const getFollowers = () =>
+  apiClient.get("/follows/followers")
+
+// --AI endpoint
+export const chatWithAI = (messages, profile) =>
+  apiClient.post("/ai/chat", { messages, profile })
+
+// --Athlete Onboarding
+export const setupAthleteProfile = (data) =>
+  apiClient.post("/athletes/profile/setup", data)

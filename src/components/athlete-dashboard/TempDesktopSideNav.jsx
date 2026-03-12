@@ -1,8 +1,9 @@
-// src/components/DesktopSideNav.jsx
+// src/components/athlete-dashboard/TempDesktopSideNav.jsx
 
-import { useState } from "react"
-import { Home, Search, Bell, Bookmark, User, Settings, Video, MoreHorizontal } from "lucide-react"
-import { Link } from "react-router"
+import { useState, useEffect } from "react"
+import { Home, Search, Bell, Bookmark, User, Settings, Video, MoreHorizontal, Sparkles } from "lucide-react"
+import { Link, useNavigate } from "react-router"
+import { getCurrentUser, getAthleteById } from "../../api/client"
 
 const THEME = {
   dark: {
@@ -20,34 +21,63 @@ const THEME = {
 const ACCENT = "#1DA8FF"
 
 const NAV_TABS = [
-  // { id: "home",          icon: Home,     label: "Home", to: "/athletedashboard"          },
-  // { id: "search",        icon: Search,   label: "Explore", to: "/athleteexplore"      },
-  // { id: "notifications", icon: Bell,     label: "Notifications" },
-  // { id: "bookmarks",     icon: Bookmark, label: "Bookmarks"     },
-  // { id: "profile",       icon: User,     label: "Profile"       },
-  // { id: "settings",      icon: Settings, label: "Settings"      },
+  // { id: "home",    icon: Home,     label: "Home",    to: "/athletedashboard" },
+  // { id: "explore", icon: Search,   label: "Explore", to: "/athleteexplore"   },
+  { id: "ai",      icon: Sparkles, label: "SC Coach", to: "/athleteai"       },
 ]
 
 export default function DesktopSideNav({ active, setActive, dark }) {
   const tk = dark ? THEME.dark : THEME.light
+  const navigate = useNavigate()
+
+  const [profile, setProfile] = useState(null)
+
+  useEffect(() => {
+    const user = getCurrentUser()
+    if (!user) return
+    const id = user._id || user.id
+
+    getAthleteById(id)
+      .then(({ data }) => {
+        const u = data.user ?? user
+        const p = data.profile
+        const initials = `${u.firstName?.[0] ?? ""}${u.lastName?.[0] ?? ""}`.toUpperCase()
+        const handle = `@${u.firstName?.toLowerCase()}${u.lastName?.toLowerCase()}_${p?.position?.slice(0,2).toLowerCase() ?? "sc"}`
+        setProfile({
+          name: `${u.firstName} ${u.lastName}`,
+          handle,
+          initials,
+        })
+      })
+      .catch(() => {
+        const user = getCurrentUser()
+        if (!user) return
+        setProfile({
+          name: `${user.firstName} ${user.lastName}`,
+          handle: `@${user.firstName?.toLowerCase()}`,
+          initials: `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase(),
+        })
+      })
+  }, [])
 
   return (
     <aside
       className="hidden lg:flex flex-col gap-0.5 pt-6 sticky top-16 pr-4 overflow-y-auto pb-8"
       style={{ height: "calc(100vh - 4rem)", scrollbarWidth: "none" }}
     >
-
       {/* ── Nav tabs ── */}
-      {NAV_TABS.map(({ id, icon: Icon, label }) => {
+      {NAV_TABS.map(({ id, icon: Icon, label, to }) => {
         const isActive = active === id
         return (
-          <button
+          <Link
             key={id}
+            to={to}
             onClick={() => setActive(id)}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-semibold text-left w-full"
             style={{
               background: isActive ? "rgba(29,168,255,.1)" : "transparent",
               color: isActive ? ACCENT : tk.textMuted,
+              textDecoration: "none",
             }}
             onMouseEnter={e => {
               if (!isActive) {
@@ -64,7 +94,7 @@ export default function DesktopSideNav({ active, setActive, dark }) {
           >
             <Icon className="w-5 h-5 flex-shrink-0" />
             {label}
-          </button>
+          </Link>
         )
       })}
 
@@ -83,24 +113,21 @@ export default function DesktopSideNav({ active, setActive, dark }) {
         onMouseEnter={e => e.currentTarget.style.background = tk.hover}
         onMouseLeave={e => e.currentTarget.style.background = "transparent"}
       >
-        {/* Avatar */}
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-          JJ
+          {profile?.initials ?? "SC"}
         </div>
 
-        {/* Name + handle */}
         <div className="flex-1 min-w-0">
           <p className="text-xs font-semibold truncate" style={{ color: tk.text }}>
-            James Junior
+            {profile?.name ?? "Loading..."}
           </p>
           <p className="text-xs truncate" style={{ color: tk.textMuted }}>
-            @jamesjnr_cb
+            {profile?.handle ?? ""}
           </p>
         </div>
 
         <MoreHorizontal className="w-4 h-4 flex-shrink-0" style={{ color: tk.textMuted }} />
       </div>
-
     </aside>
   )
 }

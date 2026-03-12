@@ -1,7 +1,7 @@
 // src/pages/AthleteDashboard.jsx
 
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router"
+import { useNavigate, Link } from "react-router"
 import { toast } from "sonner"
 import AthleteNavbar from "../components/AthleteNavbar"
 import DesktopSideNav from "../components/athlete-dashboard/TempDesktopSideNav"
@@ -12,9 +12,8 @@ import PostCard from "../components/athlete-dashboard/TempPostCard"
 import ProfileCard from "../components/athlete-dashboard/TempProfileCard"
 import TrendingCard from "../components/athlete-dashboard/TempTrendingCard"
 import WhoToFollow from "../components/athlete-dashboard/TempWhoToFollow"
-
-// ── API 
-import { getAthleteById, getCurrentUser, isLoggedIn } from "../../src/api/client"
+import { getAthleteById, getCurrentUser, isLoggedIn, getFeedPosts, likePost } from "../../src/api/client"
+import { Sparkles, ChevronRight, Dumbbell, Activity, Trophy } from "lucide-react"
 
 // ── Theme 
 const ACCENT = "#1DA8FF"
@@ -34,56 +33,116 @@ const THEME = {
   }
 }
 
-const FEED_POSTS = [
-  {
-    id: 1,
-    athlete: {
-      name: "Kofi Mensah", handle: "@kofi_striker", sport: "Soccer",
-      position: "Striker", school: "Achimota School", location: "Greater Accra",
-      classOf: "2026", verified: true,
-    },
-    videoId: "-5oif_xAwyg",
-    caption: "Hat-trick in the Inter-Schools finals 🔥 Scouts from Legon Cities were watching 👀 #Soccer #Ghana #Recruit",
-    likes: 847, comments: 43, reposts: 91, views: "12.4k",
-    timestamp: "2h ago", liked: false,
-  },
-  {
-    id: 2,
-    athlete: {
-      name: "Ama Asante", handle: "@ama_track", sport: "Track & Field",
-      position: "Sprinter", school: "Wesley Girls", location: "Central Region",
-      classOf: "2025", verified: false,
-    },
-    videoId: "-5oif_xAwyg",
-    caption: "New PB in the 100m — 11.4s 💨 Pushing every single day. College scouts, the door is open. #Sprint #Athletics",
-    likes: 1203, comments: 76, reposts: 154, views: "28.1k",
-    timestamp: "5h ago", liked: true,
-  },
-  {
-    id: 3,
-    athlete: {
-      name: "Kwame Boateng", handle: "@kwame_hoops", sport: "Basketball",
-      position: "Point Guard", school: "Prempeh College", location: "Ashanti Region",
-      classOf: "2026", verified: true,
-    },
-    videoId: "-5oif_xAwyg",
-    caption: "30pts, 9ast in last night's game 🏀 These handles aren't stopping anytime soon. #Basketball #Hoops",
-    likes: 2100, comments: 188, reposts: 340, views: "41.7k",
-    timestamp: "1d ago", liked: false,
-  },
-  {
-    id: 4,
-    athlete: {
-      name: "Efua Darko", handle: "@efua_swims", sport: "Swimming",
-      position: "Freestyle", school: "Ghana Intl School", location: "Greater Accra",
-      classOf: "2025", verified: false,
-    },
-    videoId: "-5oif_xAwyg",
-    caption: "Broke the school record in the 200m freestyle today 🏊‍♀️ Every lap is a step closer to my dream. #Swimming #Recruit",
-    likes: 567, comments: 29, reposts: 61, views: "8.9k",
-    timestamp: "1d ago", liked: false,
-  },
-]
+
+function SCCoachBanner({ dark, profile }) {
+  const tk = dark ? THEME.dark : THEME.light
+  const sport = profile?.sport || "your sport"
+  const position = profile?.position || null
+
+  return (
+    <Link
+      to="/athleteai"
+      className="block mx-4 mb-3 xl:hidden rounded-2xl overflow-hidden transition-all"
+      style={{ textDecoration: "none" }}
+    >
+      <div
+        className="relative p-4"
+        style={{
+          background: "linear-gradient(135deg, #0D1F35 0%, #0A1628 50%, #0D1F35 100%)",
+          border: "1px solid rgba(29,168,255,0.25)",
+          borderRadius: "16px",
+        }}
+      >
+        {/* Glow blob */}
+        <div
+          className="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none"
+          style={{
+            background: "radial-gradient(circle, rgba(29,168,255,0.15) 0%, transparent 70%)",
+            transform: "translate(30%, -30%)",
+          }}
+        />
+
+        {/* Top row */}
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{
+                background: "linear-gradient(135deg, rgba(29,168,255,0.3), rgba(99,102,241,0.3))",
+                border: "1px solid rgba(29,168,255,0.4)",
+              }}
+            >
+              <Sparkles className="w-4 h-4" style={{ color: ACCENT }} />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs font-black" style={{ color: "#F0F6FF" }}>SC COACH</p>
+                <span
+                  className="text-xs px-1.5 py-0.5 rounded-full font-black"
+                  style={{ background: "rgba(16,185,129,0.15)", color: "#10B981", fontSize: 9 }}
+                >
+                  AI
+                </span>
+              </div>
+              <div className="flex items-center gap-1 mt-0.5">
+                <div
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ background: "#10B981", animation: "pulse 2s ease infinite" }}
+                />
+                <p className="text-xs" style={{ color: "#10B981", fontSize: 10 }}>
+                  Ready to coach you
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold flex-shrink-0"
+            style={{
+              background: `linear-gradient(135deg, ${ACCENT}, #6366F1)`,
+              color: "#fff",
+            }}
+          >
+            Start
+            <ChevronRight className="w-3 h-3" />
+          </div>
+        </div>
+
+        {/* Main text */}
+        <p className="text-sm font-bold mb-1" style={{ color: "#F0F6FF" }}>
+          Get your personalized{" "}
+          <span style={{ color: ACCENT }}>{sport}</span> plan
+          {position ? (
+            <> built for a <span style={{ color: "#A5B4FC" }}>{position}</span></>
+          ) : null}
+        </p>
+        <p className="text-xs leading-relaxed mb-3" style={{ color: "#4B5563" }}>
+          Drills, fitness programs, and recruiting tips — all tailored to your profile.
+        </p>
+
+        {/* Category pills */}
+        <div className="flex gap-1.5">
+          {[
+            { icon: Dumbbell,  label: "Drills",     color: ACCENT        },
+            { icon: Activity,  label: "Fitness",    color: "#10B981"     },
+            { icon: Trophy,    label: "Recruiting", color: "#F59E0B"     },
+          ].map(({ icon: Icon, label, color }) => (
+            <div
+              key={label}
+              className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold"
+              style={{ background: `${color}15`, color, border: `1px solid ${color}25` }}
+            >
+              <Icon className="w-2.5 h-2.5" />
+              {label}
+            </div>
+          ))}
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+
 
 // ── Dashboard 
 export default function AthleteDashboard() {
@@ -96,6 +155,8 @@ export default function AthleteDashboard() {
   const [currentUser, setCurrentUser] = useState(null)
   const [athleteProfile, setAthleteProfile] = useState(null)
   const [loadingProfile, setLoadingProfile] = useState(true)
+  const [feedPosts, setFeedPosts] = useState([])
+  const [feedLoading, setFeedLoading] = useState(true)
 
   const tk = dark ? THEME.dark : THEME.light
 
@@ -129,7 +190,30 @@ export default function AthleteDashboard() {
     }
 
     fetchProfile()
+
+    const fetchFeed = async () => {
+    try {
+      const { data } = await getFeedPosts({ sport: feedFilter !== "all" ? feedFilter : undefined })
+      setFeedPosts(data.posts)
+    } catch (err) {
+      toast.error("Failed to load feed")
+    } finally {
+      setFeedLoading(false)
+    }
+  }
+  fetchFeed();
   }, [navigate])
+
+  
+
+  useEffect(() => {
+    if (!currentUser) return
+    setFeedLoading(true)
+    getFeedPosts({ sport: feedFilter !== "all" ? feedFilter : undefined })
+      .then(({ data }) => setFeedPosts(data.posts))
+      .catch(() => toast.error("Failed to load feed"))
+      .finally(() => setFeedLoading(false))
+  }, [feedFilter])
 
   const profileCardUser = currentUser ? {
     name: `${currentUser.firstName} ${currentUser.lastName}`,
@@ -152,11 +236,29 @@ export default function AthleteDashboard() {
     verified: athleteProfile?.verified || false,
   } : null
 
+  const handleLike = async (postId) => {
+    // Optimistic update
+    setFeedPosts(prev => prev.map(p =>
+      p._id === postId
+        ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 }
+        : p
+    ))
+    try {
+      await likePost(postId)
+    } catch {
+      // Revert on failure
+      setFeedPosts(prev => prev.map(p =>
+        p._id === postId
+          ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 }
+          : p
+      ))
+      toast.error("Failed to like post")
+    }
+  }
+
   // ── Feed filter
   const filters = ["all", "Soccer", "Basketball", "Track & Field", "Swimming"]
-  const filtered = feedFilter === "all"
-    ? FEED_POSTS
-    : FEED_POSTS.filter(p => p.athlete.sport === feedFilter)
+  const filtered = feedPosts
 
   // ── Loading state 
   if (loadingProfile) {
@@ -285,6 +387,8 @@ export default function AthleteDashboard() {
           {/* 4. RECRUITER BANNER */}
           <RecruiterBanner dark={dark} />
 
+          <SCCoachBanner dark={dark} profile={athleteProfile} />
+
           {/* 5. POST COMPOSER */}
           <PostComposer dark={dark} user={profileCardUser} />
 
@@ -297,9 +401,11 @@ export default function AthleteDashboard() {
                 </p>
               </div>
             ) : (
-              filtered.map(post => (
-                <PostCard key={post.id} post={post} dark={dark} />
-              ))
+              feedLoading
+                ? <div className="px-4 py-16 text-center text-sm" style={{ color: tk.textMuted }}>Loading feed...</div>
+                : filtered.map(post => (
+                  <PostCard key={post._id} post={post} dark={dark} onLike={handleLike} />
+                ))
             )}
           </div>
         </main>

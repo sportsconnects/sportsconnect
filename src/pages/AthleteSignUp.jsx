@@ -52,7 +52,10 @@ export default function AthleteSignUp() {
 
       toast.success("Account created successfully! Redirecting...", { id: toastId })
 
-      setTimeout(() => navigate("/signin"), 1500)
+      localStorage.setItem("authToken", data.token)
+      localStorage.setItem("user", JSON.stringify(data.user))
+      toast.success("Account created! Let's set up your profile 🎉", { id: toastId })
+      setTimeout(() => navigate("/athleteonboarding"), 1200)
 
     } catch (err) {
       toast.error(err.response?.data?.message || "Something went wrong. Try again.", { id: toastId })
