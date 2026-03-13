@@ -16,7 +16,7 @@ import {
 } from "lucide-react"
 import {
   getCurrentUser, isLoggedIn,
-  getAthleteById, getOffers} from "../../api/client"
+  getAthleteById, getOffers, startConversation, sendMessage} from "../../api/client"
 
 
 const ACCENT = "#1DA8FF"
@@ -220,20 +220,24 @@ function MessageModal({ recruiter, dark, onClose, onSent }) {
   const [sending, setSending] = useState(false)
   const tk = dark ? THEME.dark : THEME.light
 
-  const handleSend = async () => {
-    if (!text.trim()) return toast.error("Please write a message")
-    try {
-      setSending(true)
-      const { data } = await startConversation({ recipientId: recruiter.recruiterId })
-      toast.success("Message sent successfully")
-      onSent()
-      onClose()
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to send message")
-    } finally {
-      setSending(false)
-    }
+ const handleSend = async () => {
+  if (!text.trim()) return toast.error("Please write a message")
+  try {
+    setSending(true)
+
+    const { data: convoData } = await startConversation(recruiter.recruiterId)
+    const conversationId = convoData.conversation._id
+    await sendMessage(conversationId, text.trim())
+
+    toast.success("Message sent!")
+    onSent()
+    onClose()
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Failed to send message")
+  } finally {
+    setSending(false)
   }
+}
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"

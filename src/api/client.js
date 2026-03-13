@@ -158,3 +158,19 @@ export const chatWithAI = (messages, profile) =>
 // --Athlete Onboarding
 export const setupAthleteProfile = (data) =>
   apiClient.post("/athletes/profile/setup", data)
+
+// Messages
+export const startConversation  = (recipientId) =>
+  apiClient.post("/messages/conversations", { recipientId })
+
+export const getConversations   = () =>
+  apiClient.get("/messages/conversations")
+
+export const getMessages        = (conversationId) =>
+  apiClient.get(`/messages/conversations/${conversationId}/messages`)
+
+export const sendMessage        = (conversationId, text) =>
+  apiClient.post(`/messages/conversations/${conversationId}/messages`, { text })
+
+export const getUnreadCount     = () =>
+  apiClient.get("/messages/unread")

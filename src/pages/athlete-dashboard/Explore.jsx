@@ -48,7 +48,7 @@ const fmt = n => {
 }
 
 // ── Featured Card 
-function FeaturedCard({ athlete, dark, onFollow, followed, loading }) {
+function FeaturedCard({ athlete, dark, onFollow, followed, loading, onViewProfile }) {
   const [playing, setPlaying] = useState(false)
   const [liked, setLiked] = useState(false)
   const tk = dark ? THEME.dark : THEME.light
@@ -106,7 +106,7 @@ function FeaturedCard({ athlete, dark, onFollow, followed, loading }) {
               <div className="mt-1"><SportBadge sport={athlete.sport} /></div>
             </div>
           </div>
-          <button onClick={() => onFollow(athlete._id)} disabled={loading}
+          <button onClick={() => onFollow(athlete)} disabled={loading}
             className="flex-shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all"
             style={{ background: followed ? "transparent" : ACCENT, color: followed ? ACCENT : "#fff", border: `1px solid ${ACCENT}`, opacity: loading ? 0.6 : 1 }}>
             {loading ? "..." : followed ? <Check className="w-3 h-3" /> : <UserPlus className="w-3 h-3" />}
@@ -150,130 +150,19 @@ function FeaturedCard({ athlete, dark, onFollow, followed, loading }) {
             style={{ color: liked ? "#EC4899" : tk.textMuted }}>
             <Heart className={`w-4 h-4 ${liked ? "fill-pink-500" : ""}`} />
           </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Athlete Grid Card 
-function AthleteCard({ athlete, dark, onFollow, followed, index, loading }) {
-  const [liked, setLiked] = useState(false)
-  const [playing, setPlaying] = useState(false)
-  const tk = dark ? THEME.dark : THEME.light
-
-  const name = `${athlete.user?.firstName || ""} ${athlete.user?.lastName || ""}`.trim()
-  const videoId = athlete.highlights?.[0]?.videoId || null
-
-  return (
-    <div className="rounded-2xl overflow-hidden transition-all duration-300"
-      style={{
-        background: tk.surface, border: `1px solid ${tk.border}`,
-        boxShadow: dark ? "0 4px 16px rgba(0,0,0,0.3)" : "0 2px 12px rgba(0,0,0,0.06)",
-        animationDelay: `${index * 60}ms`
-      }}>
-
-      {/* Video */}
-      <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
-        {!playing ? (
-          <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center cursor-pointer relative group"
-            onClick={() => videoId && setPlaying(true)}>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-            <div className="absolute top-2 right-2 z-10"><SportBadge sport={athlete.sport} /></div>
-            <div className="absolute top-2 left-2 z-10">
-              <span className="bg-black/70 backdrop-blur-sm text-white px-2 py-0.5 rounded-full text-xs font-medium">
-                {athlete.position || "Athlete"}
-              </span>
-            </div>
-            <div className={`w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center z-10 transition-transform ${videoId ? "group-hover:scale-110" : "opacity-40"}`}>
-              <Play className="w-4 h-4 text-white fill-white ml-0.5" />
-            </div>
-            <div className="absolute bottom-2 left-2 z-10 flex items-center gap-1 text-white/70 text-xs">
-              <Eye className="w-3 h-3" />{athlete.profileViews || 0}
-            </div>
-            {athlete.verified && (
-              <div className="absolute bottom-2 right-2 z-10">
-                <span className="text-xs px-1.5 py-0.5 rounded-full font-bold"
-                  style={{ background: "rgba(29,168,255,0.85)", color: "#fff" }}>✦ Verified</span>
-              </div>
-            )}
-          </div>
-        ) : (
-          <iframe src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
-            className="w-full h-full" allow="autoplay; encrypted-media" allowFullScreen />
-        )}
-      </div>
-
-      {/* Body */}
-      <div className="p-3">
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <Avatar name={name} size={32} />
-            <div className="min-w-0">
-              <div className="flex items-center gap-1">
-                <span className="font-bold text-xs truncate" style={{ color: tk.text }}>{name}</span>
-                {athlete.verified && <span style={{ color: ACCENT }} className="text-xs flex-shrink-0">✦</span>}
-              </div>
-              <p className="text-xs truncate" style={{ color: tk.textMuted }}>
-                {athlete.sport} · {athlete.region}
-              </p>
-            </div>
-          </div>
-          <button onClick={() => onFollow(athlete._id)} disabled={loading}
-            className="flex-shrink-0 rounded-full px-2.5 py-1 text-xs font-bold transition-all border"
-            style={{ background: followed ? "transparent" : ACCENT, color: followed ? ACCENT : "#fff", borderColor: ACCENT, opacity: loading ? 0.6 : 1 }}>
-            {loading ? "..." : followed ? "✓" : "+"}
-          </button>
-        </div>
-
-        <div className="space-y-0.5 mb-2">
-          <p className="text-xs flex items-center gap-1 truncate" style={{ color: tk.textMuted }}>
-            <GraduationCap className="w-3 h-3 flex-shrink-0" />{athlete.school || "—"}
-          </p>
-          <p className="text-xs flex items-center gap-1" style={{ color: tk.textMuted }}>
-            <MapPin className="w-3 h-3 flex-shrink-0" />{athlete.region || "—"} · Class of {athlete.classOf || "—"}
-          </p>
-        </div>
-
-        <div className="flex items-center justify-between py-2 mb-2"
-          style={{ borderTop: `1px solid ${tk.border}`, borderBottom: `1px solid ${tk.border}` }}>
-          {[
-            [athlete.height || "—", "Height"],
-            [athlete.gpa || "—", "GPA"],
-            [fmt(athlete.profileViews || 0), "Views"],
-          ].map(([val, label]) => (
-            <div key={label} className="text-center">
-              <p className="font-bold text-xs" style={{ color: tk.text }}>{val}</p>
-              <p className="text-xs" style={{ color: tk.textMuted }}>{label}</p>
-            </div>
-          ))}
-        </div>
-
-        {athlete.achievements?.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3">
-            <span className="text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1 truncate max-w-full"
-              style={{ background: "rgba(29,168,255,0.1)", color: ACCENT }}>
-              <Trophy className="w-2.5 h-2.5 flex-shrink-0" />
-              <span className="truncate">{athlete.achievements[0]?.title || athlete.achievements[0]}</span>
-            </span>
-          </div>
-        )}
-
-        <div className="flex items-center gap-2">
-          <button className="flex-1 text-white rounded-xl py-1.5 text-xs font-bold transition-opacity hover:opacity-90"
-            style={{ background: ACCENT }}>
+          <button
+            onClick={() => onViewProfile(athlete)}
+            className="text-xs font-bold px-3 py-1.5 rounded-xl transition-opacity hover:opacity-90"
+            style={{ background: ACCENT, color: "#fff" }}
+          >
             View Profile
           </button>
-          <button onClick={() => setLiked(!liked)}
-            className="w-8 h-8 rounded-xl flex items-center justify-center transition-all border"
-            style={{ background: liked ? "rgba(236,72,153,0.1)" : "transparent", borderColor: liked ? "#EC4899" : tk.border, color: liked ? "#EC4899" : tk.textMuted }}>
-            <Heart className={`w-3.5 h-3.5 ${liked ? "fill-pink-500" : ""}`} />
-          </button>
         </div>
       </div>
     </div>
   )
 }
+
 
 // ── Filter Pill 
 function FilterPill({ label, active, onClick, dark }) {
@@ -371,6 +260,324 @@ function SkeletonCard({ dark }) {
   )
 }
 
+function AthleteProfileModal({ athlete, dark, onClose, onFollow, followed, followLoading }) {
+  const tk = dark ? THEME.dark : THEME.light
+  const [playing, setPlaying] = useState(false)
+  const name = `${athlete.user?.firstName || ""} ${athlete.user?.lastName || ""}`.trim()
+  const userId = athlete.user?._id || athlete.user?.id || athlete._id
+
+  // Close on Escape key
+  useEffect(() => {
+    const fn = e => { if (e.key === "Escape") onClose() }
+    document.addEventListener("keydown", fn)
+    return () => document.removeEventListener("keydown", fn)
+  }, [])
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)" }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div
+        className="w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl overflow-hidden"
+        style={{
+          background: tk.surface,
+          border: `1px solid ${tk.border}`,
+          boxShadow: "0 24px 64px rgba(0,0,0,0.4)",
+          maxHeight: "90vh",
+          overflowY: "auto",
+        }}
+      >
+        {/* Header */}
+        <div
+          className="flex items-center justify-between px-4 py-3 sticky top-0 z-10"
+          style={{ background: tk.surface, borderBottom: `1px solid ${tk.border}` }}
+        >
+          <p className="font-black text-sm" style={{ color: tk.text }}>Athlete Profile</p>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-xl flex items-center justify-center transition-all"
+            style={{ color: tk.textMuted, background: tk.hover }}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Highlight video */}
+        {athlete.highlights?.length > 0 && (
+          <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
+            {!playing ? (
+              <div
+                className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center cursor-pointer relative group"
+                onClick={() => setPlaying(true)}
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center z-10 group-hover:scale-110 transition-transform">
+                  <Play className="w-6 h-6 text-white fill-white ml-0.5" />
+                </div>
+                <div className="absolute bottom-3 left-3 z-10 text-white text-xs font-semibold">
+                  {athlete.highlights[0]?.title || "Highlight Reel"}
+                </div>
+              </div>
+            ) : (
+              <iframe
+                src={`https://www.youtube.com/embed/${athlete.highlights[0].videoId}?autoplay=1&rel=0`}
+                className="w-full h-full"
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+              />
+            )}
+          </div>
+        )}
+
+        {/* Profile body */}
+        <div className="p-4">
+          {/* Name + follow */}
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <Avatar name={name} size={52} />
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className="font-black text-base" style={{ color: tk.text }}>{name}</p>
+                  {athlete.verified && <span style={{ color: ACCENT }}>✦</span>}
+                </div>
+                <p className="text-xs" style={{ color: tk.textMuted }}>
+                  {athlete.position} · {athlete.sport}
+                </p>
+                <div className="mt-1"><SportBadge sport={athlete.sport} /></div>
+              </div>
+            </div>
+            <button
+              onClick={() => onFollow(athlete)}
+              disabled={followLoading}
+              className="flex-shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all border"
+              style={{
+                background: followed ? "transparent" : ACCENT,
+                color: followed ? ACCENT : "#fff",
+                borderColor: ACCENT,
+                opacity: followLoading ? 0.6 : 1,
+              }}
+            >
+              {followLoading ? "..." : followed ? <><Check className="w-3 h-3" /> Following</> : <><UserPlus className="w-3 h-3" /> Follow</>}
+            </button>
+          </div>
+
+          {/* Stats row */}
+          <div
+            className="grid grid-cols-3 gap-2 mb-4 p-3 rounded-2xl"
+            style={{ background: tk.surfaceHigh }}
+          >
+            {[
+              [athlete.height || "—", "Height"],
+              [athlete.gpa || "—", "GPA"],
+              [fmt(athlete.profileViews || 0), "Views"],
+            ].map(([val, label]) => (
+              <div key={label} className="text-center">
+                <p className="font-black text-sm" style={{ color: tk.text }}>{val}</p>
+                <p className="text-xs" style={{ color: tk.textMuted }}>{label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Details */}
+          <div className="space-y-2 mb-4">
+            {[
+              [GraduationCap, athlete.school || "—", "School"],
+              [MapPin, athlete.region || "—", "Region"],
+              [Trophy, `Class of ${athlete.classOf || "—"}`, "Year"],
+            ].map(([Icon, val, label]) => (
+              <div key={label} className="flex items-center gap-2">
+                <div
+                  className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(29,168,255,0.1)" }}
+                >
+                  <Icon className="w-3.5 h-3.5" style={{ color: ACCENT }} />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold" style={{ color: tk.text }}>{val}</p>
+                  <p className="text-xs" style={{ color: tk.textMuted }}>{label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Bio */}
+          {athlete.bio && (
+            <div
+              className="rounded-xl p-3 mb-4 text-xs leading-relaxed"
+              style={{ background: tk.surfaceHigh, color: tk.textSub }}
+            >
+              {athlete.bio}
+            </div>
+          )}
+
+          {/* Achievements */}
+          {athlete.achievements?.length > 0 && (
+            <div className="mb-4">
+              <p className="text-xs font-bold mb-2" style={{ color: tk.textMuted }}>ACHIEVEMENTS</p>
+              <div className="flex flex-wrap gap-1.5">
+                {athlete.achievements.map((a, i) => (
+                  <span
+                    key={i}
+                    className="text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1"
+                    style={{ background: "rgba(245,158,11,0.1)", color: "#F59E0B" }}
+                  >
+                    <Trophy className="w-2.5 h-2.5" />{a.title || a}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* All highlights */}
+          {athlete.highlights?.length > 1 && (
+            <div>
+              <p className="text-xs font-bold mb-2" style={{ color: tk.textMuted }}>ALL HIGHLIGHTS</p>
+              <div className="space-y-2">
+                {athlete.highlights.slice(1).map((h, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl"
+                    style={{ background: tk.surfaceHigh }}
+                  >
+                    <Play className="w-3.5 h-3.5 flex-shrink-0" style={{ color: ACCENT }} />
+                    <p className="text-xs flex-1 truncate" style={{ color: tk.text }}>{h.title || `Highlight ${i + 2}`}</p>
+                    <Eye className="w-3 h-3 flex-shrink-0" style={{ color: tk.textMuted }} />
+                    <span className="text-xs" style={{ color: tk.textMuted }}>{h.views || 0}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Athlete Grid Card 
+function AthleteCard({ athlete, dark, onFollow, followed, index, loading, onViewProfile }) {
+  const [liked, setLiked] = useState(false)
+  const [playing, setPlaying] = useState(false)
+  const tk = dark ? THEME.dark : THEME.light
+
+  const name = `${athlete.user?.firstName || ""} ${athlete.user?.lastName || ""}`.trim()
+  const videoId = athlete.highlights?.[0]?.videoId || null
+
+  return (
+    <div className="rounded-2xl overflow-hidden transition-all duration-300"
+      style={{
+        background: tk.surface, border: `1px solid ${tk.border}`,
+        boxShadow: dark ? "0 4px 16px rgba(0,0,0,0.3)" : "0 2px 12px rgba(0,0,0,0.06)",
+        animationDelay: `${index * 60}ms`
+      }}>
+
+      {/* Video */}
+      <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
+        {!playing ? (
+          <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center cursor-pointer relative group"
+            onClick={() => videoId && setPlaying(true)}>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+            <div className="absolute top-2 right-2 z-10"><SportBadge sport={athlete.sport} /></div>
+            <div className="absolute top-2 left-2 z-10">
+              <span className="bg-black/70 backdrop-blur-sm text-white px-2 py-0.5 rounded-full text-xs font-medium">
+                {athlete.position || "Athlete"}
+              </span>
+            </div>
+            <div className={`w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center z-10 transition-transform ${videoId ? "group-hover:scale-110" : "opacity-40"}`}>
+              <Play className="w-4 h-4 text-white fill-white ml-0.5" />
+            </div>
+            <div className="absolute bottom-2 left-2 z-10 flex items-center gap-1 text-white/70 text-xs">
+              <Eye className="w-3 h-3" />{athlete.profileViews || 0}
+            </div>
+            {athlete.verified && (
+              <div className="absolute bottom-2 right-2 z-10">
+                <span className="text-xs px-1.5 py-0.5 rounded-full font-bold"
+                  style={{ background: "rgba(29,168,255,0.85)", color: "#fff" }}>✦ Verified</span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <iframe src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
+            className="w-full h-full" allow="autoplay; encrypted-media" allowFullScreen />
+        )}
+      </div>
+
+      {/* Body */}
+      <div className="p-3">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Avatar name={name} size={32} />
+            <div className="min-w-0">
+              <div className="flex items-center gap-1">
+                <span className="font-bold text-xs truncate" style={{ color: tk.text }}>{name}</span>
+                {athlete.verified && <span style={{ color: ACCENT }} className="text-xs flex-shrink-0">✦</span>}
+              </div>
+              <p className="text-xs truncate" style={{ color: tk.textMuted }}>
+                {athlete.sport} · {athlete.region}
+              </p>
+            </div>
+          </div>
+          <button onClick={() => onFollow(athlete)} disabled={loading}
+            className="flex-shrink-0 rounded-full px-2.5 py-1 text-xs font-bold transition-all border"
+            style={{ background: followed ? "transparent" : ACCENT, color: followed ? ACCENT : "#fff", borderColor: ACCENT, opacity: loading ? 0.6 : 1 }}>
+            {loading ? "..." : followed ? "✓" : "+"}
+          </button>
+        </div>
+
+        <div className="space-y-0.5 mb-2">
+          <p className="text-xs flex items-center gap-1 truncate" style={{ color: tk.textMuted }}>
+            <GraduationCap className="w-3 h-3 flex-shrink-0" />{athlete.school || "—"}
+          </p>
+          <p className="text-xs flex items-center gap-1" style={{ color: tk.textMuted }}>
+            <MapPin className="w-3 h-3 flex-shrink-0" />{athlete.region || "—"} · Class of {athlete.classOf || "—"}
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between py-2 mb-2"
+          style={{ borderTop: `1px solid ${tk.border}`, borderBottom: `1px solid ${tk.border}` }}>
+          {[
+            [athlete.height || "—", "Height"],
+            [athlete.gpa || "—", "GPA"],
+            [fmt(athlete.profileViews || 0), "Views"],
+          ].map(([val, label]) => (
+            <div key={label} className="text-center">
+              <p className="font-bold text-xs" style={{ color: tk.text }}>{val}</p>
+              <p className="text-xs" style={{ color: tk.textMuted }}>{label}</p>
+            </div>
+          ))}
+        </div>
+
+        {athlete.achievements?.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-3">
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1 truncate max-w-full"
+              style={{ background: "rgba(29,168,255,0.1)", color: ACCENT }}>
+              <Trophy className="w-2.5 h-2.5 flex-shrink-0" />
+              <span className="truncate">{athlete.achievements[0]?.title || athlete.achievements[0]}</span>
+            </span>
+          </div>
+        )}
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onViewProfile(athlete)}
+            className="flex-1 text-white rounded-xl py-1.5 text-xs font-bold transition-opacity hover:opacity-90"
+            style={{ background: ACCENT }}
+          >
+            View Profile
+          </button>
+          <button onClick={() => setLiked(!liked)}
+            className="w-8 h-8 rounded-xl flex items-center justify-center transition-all border"
+            style={{ background: liked ? "rgba(236,72,153,0.1)" : "transparent", borderColor: liked ? "#EC4899" : tk.border, color: liked ? "#EC4899" : tk.textMuted }}>
+            <Heart className={`w-3.5 h-3.5 ${liked ? "fill-pink-500" : ""}`} />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main Page 
 export default function AthleteExplore() {
   const navigate = useNavigate()
@@ -384,6 +591,7 @@ export default function AthleteExplore() {
   const [followed, setFollowed] = useState({})
   const [followLoading, setFollowLoading] = useState({})
   const [showFilters, setShowFilters] = useState(false)
+  const [profileModal, setProfileModal] = useState(null)
 
   // Real data
   const [athletes, setAthletes] = useState([])
@@ -425,10 +633,11 @@ export default function AthleteExplore() {
 
       const { data } = await getAthletes(params)
       setAthletes(data.athletes || [])
-      
+
       const followMap = {}
         ; (data.athletes || []).forEach(a => {
-          if (a.isFollowing !== undefined) followMap[a._id] = a.isFollowing
+          const uid = a.user?._id || a.user?.id || a._id
+          if (a.isFollowing !== undefined) followMap[uid] = a.isFollowing
         })
       setFollowed(prev => ({ ...prev, ...followMap }))
     } catch (err) {
@@ -440,15 +649,17 @@ export default function AthleteExplore() {
 
   const featured = athletes.filter(a => a.highlights?.length > 0).slice(0, 3)
 
-  const handleFollow = async (id) => {
+  const handleFollow = async (athlete) => {
+    // Get the User._id, not the AthleteProfile._id
+    const id = athlete.user?._id || athlete.user?.id || athlete._id || athlete.id
+    const profId = athlete._id || athlete.id  // keep for state key
+
     if (followLoading[id]) return
     setFollowLoading(prev => ({ ...prev, [id]: true }))
-    // Optimistic update
     setFollowed(prev => ({ ...prev, [id]: !prev[id] }))
     try {
       await toggleFollow(id)
     } catch {
-      // Revert on failure
       setFollowed(prev => ({ ...prev, [id]: !prev[id] }))
       toast.error("Failed to update follow")
     } finally {
@@ -611,7 +822,8 @@ export default function AthleteExplore() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {featured.map((athlete, i) => (
                     <div key={athlete._id} className="sc-card-enter" style={{ animationDelay: `${i * 80}ms` }}>
-                      <FeaturedCard athlete={athlete} dark={dark} onFollow={handleFollow} followed={!!followed[athlete._id]} loading={!!followLoading[athlete._id]} />
+                      <FeaturedCard athlete={athlete} dark={dark} onFollow={handleFollow} followed={!!followed[athlete.user?._id || athlete._id]} loading={!!followLoading[athlete.user?._id || athlete._id]}
+                        onViewProfile={setProfileModal} />
                     </div>
                   ))}
                 </div>
@@ -662,7 +874,8 @@ export default function AthleteExplore() {
                   {athletes.map((athlete, i) => (
                     <div key={athlete._id} className="sc-card-enter" style={{ animationDelay: `${i * 50}ms` }}>
                       <AthleteCard athlete={athlete} dark={dark} onFollow={handleFollow}
-                        followed={!!followed[athlete._id]} index={i} loading={!!followLoading[athlete._id]} />
+                        followed={!!followed[athlete.user?._id || athlete._id]} index={i} loading={!!followLoading[athlete.user?._id || athlete._id]}
+                        onViewProfile={setProfileModal} />
                     </div>
                   ))}
                 </div>
@@ -671,6 +884,18 @@ export default function AthleteExplore() {
           </div>
         </main>
       </div>
+
+      {profileModal && (
+        <AthleteProfileModal
+          athlete={profileModal}
+          dark={dark}
+          onClose={() => setProfileModal(null)}
+          onFollow={handleFollow}
+          followed={!!followed[profileModal.user?._id || profileModal._id]}
+          followLoading={!!followLoading[profileModal.user?._id || profileModal._id]}
+        />
+      )}
+
 
       <MobileBottomNav active={activeTab} setActive={setActive} dark={dark} />
     </div>
