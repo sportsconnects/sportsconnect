@@ -83,10 +83,10 @@ export const updateRecruiterProfile = (data) =>
 export const getShortlist = () =>
   apiClient.get("/shortlists");
 
-export const addToShortlist = (data) =>
-  apiClient.post("/shortlists", data);
+export const addToShortlist = (athleteId) =>
+  apiClient.post(`/shortlists/${athleteId}`);
 
-export const updateShortlistEntry = (athleteId, data) =>
+export const updateShortlistItem = (athleteId, data) =>
   apiClient.patch(`/shortlists/${athleteId}`, data);
 
 export const removeFromShortlist = (athleteId) =>
@@ -102,10 +102,10 @@ export const getOffers = () =>
 export const getOfferById = (id) =>
   apiClient.get(`/offers/${id}`);
 
-export const respondToOffer = (id, data) =>
+export const updateOffer = (id, data) =>
   apiClient.patch(`/offers/${id}`, data);
 
-export const withdrawOffer = (id) =>
+export const deleteOffer = (id) =>
   apiClient.delete(`/offers/${id}`);
 
 // ── Auth helpers 
@@ -118,6 +118,9 @@ export const isRecruiter = () => {
   const user = getCurrentUser();
   return user?.role === "recruiter";
 };
+
+export const setupRecruiterProfile = (data) =>
+  apiClient.post("/recruiters/profile", data);
 
 // -- Posts
 export const getFeedPosts = (params) =>
@@ -145,11 +148,11 @@ export const toggleFollow = (userId) =>
 export const getFollowStatus = (userId) =>
   apiClient.get(`/follows/status/${userId}`)
 
-export const getFollowing = () =>
-  apiClient.get("/follows/following")
+export const getFollowing = (userId) =>
+  apiClient.get(`/follows/following/${userId}`)
 
-export const getFollowers = () =>
-  apiClient.get("/follows/followers")
+export const getFollowers = (userId) =>
+  apiClient.get(`/follows/followers/${userId}`)
 
 // --AI endpoint
 export const chatWithAI = (messages, profile) =>
