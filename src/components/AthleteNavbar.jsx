@@ -100,7 +100,7 @@ export default function AthleteNavbar({ dark = false, toggleDark }) {
           <div className="flex items-center justify-between h-14 sm:h-16">
 
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2.5 group sc-logo-glow flex-shrink-0">
+            <Link to="/athletedashboard" className="flex items-center gap-2.5 group sc-logo-glow flex-shrink-0">
               <div className="relative">
                 <img src={logo} alt="SportConnect logo" className="w-9 h-9 sm:w-10 sm:h-10 object-contain relative z-10" />
                 <div className="absolute inset-0 rounded-full bg-[#1DA8FF]/20 scale-125 blur-sm group-hover:bg-[#1DA8FF]/35 transition-colors" />
