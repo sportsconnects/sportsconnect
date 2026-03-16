@@ -54,7 +54,7 @@ function formatTime(dateStr) {
   if (!dateStr) return ""
   const date = new Date(dateStr)
   const now = new Date()
-  const diff = (now - date) / 1000 
+  const diff = (now - date) / 1000
 
   if (diff < 60) return "just now"
   if (diff < 3600) return `${Math.floor(diff / 60)}m`
@@ -263,10 +263,12 @@ export default function AthleteMessages() {
     setLoadingMsgs(true)
     setMessages([])
 
+    const socket = getSocket()
+    if (socket) socket.emit("join_conversation", id)
+
     getMessages(id)
       .then(({ data }) => {
         setMessages(data.messages || [])
-        // Reset unread in local state
         setConvos(prev => prev.map(c =>
           c._id === id ? { ...c, unread: 0 } : c
         ))
@@ -274,6 +276,8 @@ export default function AthleteMessages() {
       .catch(() => toast.error("Failed to load messages"))
       .finally(() => setLoadingMsgs(false))
   }
+
+
 
   // ── Send a message
   const handleSend = async () => {
@@ -322,71 +326,63 @@ export default function AthleteMessages() {
     }
   }
 
-  // ── Connect socket and listen for real-time messages
-useEffect(() => {
-  const token = getToken()
-  if (!token) return
+  useEffect(() => {
+    const token = getToken()
+    if (!token) return
 
-  const socket = connectSocket(token)
+    const socket = connectSocket(token)
 
-  // Listen for new messages
-  socket.on("new_message", ({ conversationId, message }) => {
-    // If we're currently viewing this conversation, append the message
-    setActiveId(current => {
-      if (current === conversationId) {
-        setMessages(prev => {
-          // Don't add if it's our own message (already added optimistically)
-          const senderId = message.sender?._id || message.sender
-          if (senderId?.toString() === currentUserId?.toString()) return prev
-          return [...prev, message]
-        })
-      }
-      return current
+    socket.on("new_message", ({ conversationId, message }) => {
+      setActiveId(current => {
+        if (current === conversationId) {
+          setMessages(prev => {
+            const senderId = message.sender?._id || message.sender
+            if (senderId?.toString() === currentUserId?.toString()) return prev
+            return [...prev, message]
+          })
+        }
+        return current
+      })
+
+      setConvos(prev => prev.map(c => {
+        if (c._id !== conversationId) return c
+        const senderId = message.sender?._id || message.sender
+        const isCurrentConvo = c._id === activeId
+        return {
+          ...c,
+          lastMessage: { text: message.text },
+          lastMessageAt: message.createdAt,
+          unread: isCurrentConvo ? 0
+            : senderId?.toString() !== currentUserId?.toString()
+              ? (c.unread || 0) + 1
+              : c.unread,
+        }
+      }))
     })
 
-    // Update conversation list last message + unread
-    setConvos(prev => prev.map(c => {
-      if (c._id !== conversationId) return c
-      const senderId = message.sender?._id || message.sender
-      const isCurrentConvo = c._id === activeId
-      return {
-        ...c,
-        lastMessage:    { text: message.text },
-        lastMessageAt:  message.createdAt,
-        unread: isCurrentConvo ? 0
-          : senderId?.toString() !== currentUserId?.toString()
-            ? (c.unread || 0) + 1
-            : c.unread,
+    socket.on("unread_update", ({ conversationId, unread }) => {
+      setConvos(prev => prev.map(c =>
+        c._id === conversationId ? { ...c, unread } : c
+      ))
+    })
+
+    // ── Keep-alive ping every 20 seconds
+    const keepAlive = setInterval(() => {
+      if (socket.connected) {
+        socket.emit("ping_keep_alive")
+      } else {
+        socket.connect() // reconnect if dropped
       }
-    }))
-  })
+    }, 20000)
 
-  // Listen for unread badge updates
-  socket.on("unread_update", ({ conversationId, unread }) => {
-    setConvos(prev => prev.map(c =>
-      c._id === conversationId ? { ...c, unread } : c
-    ))
-  })
+    return () => {
+      socket.off("new_message")
+      socket.off("unread_update")
+      clearInterval(keepAlive)
+    }
+  }, [currentUserId])
 
-  return () => {
-    socket.off("new_message")
-    socket.off("unread_update")
-  }
-}, [currentUserId])
 
-// ── Join/leave conversation room when active conversation changes
-useEffect(() => {
-  const socket = getSocket()
-  if (!socket || !activeId) return
-
-  socket.emit("join_conversation", activeId)
-
-  return () => {
-    socket.emit("leave_conversation", activeId)
-  }
-}, [activeId])
-
-  
   return (
     <div
       className="min-h-screen transition-colors duration-300"
@@ -551,7 +547,7 @@ useEffect(() => {
                                 } catch {
                                   toast.error("Failed to mark as unread")
                                 }
-                                setMenuOpen(false)
+                                setShowMenu(false)
                               },
                               color: tk.textSub,
                             },
@@ -568,7 +564,7 @@ useEffect(() => {
                                 } catch {
                                   toast.error("Failed to delete conversation")
                                 }
-                                setMenuOpen(false)
+                                setShowMenu(false)
                               },
                               color: "#EF4444",
                             },

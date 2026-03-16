@@ -223,10 +223,15 @@ export default function RecruiterMessages() {
     setLoadingMsgs(true)
     setMessages([])
 
+    const socket = getSocket()
+    if (socket) socket.emit("join_conversation", id)
+
     getMessages(id)
       .then(({ data }) => {
         setMessages(data.messages || [])
-        setConvos(prev => prev.map(c => c._id === id ? { ...c, unread: 0 } : c))
+        setConvos(prev => prev.map(c =>
+          c._id === id ? { ...c, unread: 0 } : c
+        ))
       })
       .catch(() => toast.error("Failed to load messages"))
       .finally(() => setLoadingMsgs(false))
@@ -272,20 +277,16 @@ export default function RecruiterMessages() {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend() }
   }
 
-  // ── Connect socket and listen for real-time messages
   useEffect(() => {
     const token = getToken()
     if (!token) return
 
     const socket = connectSocket(token)
 
-    // Listen for new messages
     socket.on("new_message", ({ conversationId, message }) => {
-      // If we're currently viewing this conversation, append the message
       setActiveId(current => {
         if (current === conversationId) {
           setMessages(prev => {
-            // Don't add if it's our own message (already added optimistically)
             const senderId = message.sender?._id || message.sender
             if (senderId?.toString() === currentUserId?.toString()) return prev
             return [...prev, message]
@@ -294,7 +295,6 @@ export default function RecruiterMessages() {
         return current
       })
 
-      // Update conversation list last message + unread
       setConvos(prev => prev.map(c => {
         if (c._id !== conversationId) return c
         const senderId = message.sender?._id || message.sender
@@ -311,30 +311,27 @@ export default function RecruiterMessages() {
       }))
     })
 
-    // Listen for unread badge updates
     socket.on("unread_update", ({ conversationId, unread }) => {
       setConvos(prev => prev.map(c =>
         c._id === conversationId ? { ...c, unread } : c
       ))
     })
 
+    // ── Keep-alive ping every 20 seconds
+    const keepAlive = setInterval(() => {
+      if (socket.connected) {
+        socket.emit("ping_keep_alive")
+      } else {
+        socket.connect() // reconnect if dropped
+      }
+    }, 20000)
+
     return () => {
       socket.off("new_message")
       socket.off("unread_update")
+      clearInterval(keepAlive)
     }
   }, [currentUserId])
-
-  // ── Join/leave conversation room when active conversation changes
-  useEffect(() => {
-    const socket = getSocket()
-    if (!socket || !activeId) return
-
-    socket.emit("join_conversation", activeId)
-
-    return () => {
-      socket.emit("leave_conversation", activeId)
-    }
-  }, [activeId])
 
   return (
     <div
