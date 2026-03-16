@@ -16,11 +16,13 @@ import {
   getMessages,
   sendMessage as sendMessageAPI,
   getCurrentUser,
+  deleteConversation, markConversationUnread
 } from "../../api/client"
+import { connectSocket, getSocket } from "../../socket"
+import { getToken } from "../../api/client"
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // THEME
-// ─────────────────────────────────────────────────────────────────────────────
 const ACCENT = "#1DA8FF"
 
 const THEME = {
@@ -46,14 +48,13 @@ const THEME = {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
 function formatTime(dateStr) {
   if (!dateStr) return ""
   const date = new Date(dateStr)
   const now = new Date()
-  const diff = (now - date) / 1000 // seconds
+  const diff = (now - date) / 1000 
 
   if (diff < 60) return "just now"
   if (diff < 3600) return `${Math.floor(diff / 60)}m`
@@ -66,9 +67,8 @@ function getInitials(name = "") {
   return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // AVATAR
-// ─────────────────────────────────────────────────────────────────────────────
 const GRADS = [
   "from-amber-500 to-orange-600",
   "from-emerald-500 to-teal-600",
@@ -85,9 +85,8 @@ function RecAvatar({ name = "", size = 40, index = 0 }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // CONVERSATION LIST ITEM
-// ─────────────────────────────────────────────────────────────────────────────
 function ConvoItem({ convo, index, active, onClick, dark }) {
   const tk = dark ? THEME.dark : THEME.light
   const name = convo.other
@@ -142,13 +141,10 @@ function ConvoItem({ convo, index, active, onClick, dark }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // MESSAGE BUBBLE
-// ─────────────────────────────────────────────────────────────────────────────
 function Bubble({ msg, dark, currentUserId }) {
   const tk = dark ? THEME.dark : THEME.light
-
-  // sender can be an object { _id, firstName } or just a string ID
   const senderId = msg.sender?._id || msg.sender
   const isMe = senderId?.toString() === currentUserId?.toString()
   const isRead = Array.isArray(msg.readBy) && msg.readBy.length > 1
@@ -181,9 +177,8 @@ function Bubble({ msg, dark, currentUserId }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // LOADING SKELETON
-// ─────────────────────────────────────────────────────────────────────────────
 function ConvoSkeleton({ dark }) {
   const tk = dark ? THEME.dark : THEME.light
   return (
@@ -197,9 +192,8 @@ function ConvoSkeleton({ dark }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // MAIN PAGE
-// ─────────────────────────────────────────────────────────────────────────────
 export default function AthleteMessages() {
   const [dark, setDark] = useState(false)
   const [activeNav, setNav] = useState("messages")
@@ -328,9 +322,71 @@ export default function AthleteMessages() {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // RENDER
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── Connect socket and listen for real-time messages
+useEffect(() => {
+  const token = getToken()
+  if (!token) return
+
+  const socket = connectSocket(token)
+
+  // Listen for new messages
+  socket.on("new_message", ({ conversationId, message }) => {
+    // If we're currently viewing this conversation, append the message
+    setActiveId(current => {
+      if (current === conversationId) {
+        setMessages(prev => {
+          // Don't add if it's our own message (already added optimistically)
+          const senderId = message.sender?._id || message.sender
+          if (senderId?.toString() === currentUserId?.toString()) return prev
+          return [...prev, message]
+        })
+      }
+      return current
+    })
+
+    // Update conversation list last message + unread
+    setConvos(prev => prev.map(c => {
+      if (c._id !== conversationId) return c
+      const senderId = message.sender?._id || message.sender
+      const isCurrentConvo = c._id === activeId
+      return {
+        ...c,
+        lastMessage:    { text: message.text },
+        lastMessageAt:  message.createdAt,
+        unread: isCurrentConvo ? 0
+          : senderId?.toString() !== currentUserId?.toString()
+            ? (c.unread || 0) + 1
+            : c.unread,
+      }
+    }))
+  })
+
+  // Listen for unread badge updates
+  socket.on("unread_update", ({ conversationId, unread }) => {
+    setConvos(prev => prev.map(c =>
+      c._id === conversationId ? { ...c, unread } : c
+    ))
+  })
+
+  return () => {
+    socket.off("new_message")
+    socket.off("unread_update")
+  }
+}, [currentUserId])
+
+// ── Join/leave conversation room when active conversation changes
+useEffect(() => {
+  const socket = getSocket()
+  if (!socket || !activeId) return
+
+  socket.emit("join_conversation", activeId)
+
+  return () => {
+    socket.emit("leave_conversation", activeId)
+  }
+}, [activeId])
+
+  
   return (
     <div
       className="min-h-screen transition-colors duration-300"
@@ -455,7 +511,7 @@ export default function AthleteMessages() {
                         {active.other?.role || "Recruiter"}
                       </p>
                     </div>
-{/* 
+
                     <div className="flex items-center gap-1 flex-shrink-0 relative" ref={menuRef}>
                       <button
                         onClick={() => setShowMenu(s => !s)}
@@ -486,27 +542,33 @@ export default function AthleteMessages() {
                               color: tk.textSub,
                             },
                             {
-                              label: "Mark as Unread",
-                              icon: Check,
-                              action: () => {
-                                setConvos(prev => prev.map(c =>
-                                  c._id === activeId ? { ...c, unread: 1 } : c
-                                ))
-                                setShowMenu(false)
-                                toast.success("Marked as unread")
+                              label: "Mark as Unread", icon: Check,
+                              action: async () => {
+                                try {
+                                  await markConversationUnread(activeId)
+                                  setConvos(prev => prev.map(c => c._id === activeId ? { ...c, unread: 1 } : c))
+                                  toast.success("Marked as unread")
+                                } catch {
+                                  toast.error("Failed to mark as unread")
+                                }
+                                setMenuOpen(false)
                               },
                               color: tk.textSub,
                             },
                             {
-                              label: "Delete Conversation",
-                              icon: X,
-                              action: () => {
-                                setConvos(prev => prev.filter(c => c._id !== activeId))
-                                setActiveId(null)
-                                setMessages([])
-                                setShowList(true)
-                                setShowMenu(false)
-                                toast.success("Conversation removed")
+                              label: "Delete Conversation", icon: X,
+                              action: async () => {
+                                try {
+                                  await deleteConversation(activeId)
+                                  setConvos(prev => prev.filter(c => c._id !== activeId))
+                                  setActiveId(null)
+                                  setMessages([])
+                                  setShowList(true)
+                                  toast.success("Conversation removed")
+                                } catch {
+                                  toast.error("Failed to delete conversation")
+                                }
+                                setMenuOpen(false)
                               },
                               color: "#EF4444",
                             },
@@ -525,7 +587,7 @@ export default function AthleteMessages() {
                           ))}
                         </div>
                       )}
-                    </div> */}
+                    </div>
                   </div>
 
                   {/* Context banner */}

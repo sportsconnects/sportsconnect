@@ -5,6 +5,7 @@ import { Link, useLocation } from "react-router"
 import logo from "../../src/assets/images/sc12.png"
 import { Bell, Search, ChevronDown, LogOut, Settings, User, Sun, Moon } from "lucide-react"
 import { ACCENT, ACCENT2, THEME } from "../../src/components/RecruiterUi"
+import { logoutUser } from "../api/client"
 
 const NAV_LINKS = [
   { label:"Dashboard",  to:"/recruiterdashboard"  },
@@ -34,6 +35,12 @@ export default function RecruiterNavbar({ dark, toggleDark }) {
     document.addEventListener("mousedown", fn)
     return () => document.removeEventListener("mousedown", fn)
   }, [])
+
+  const handleSignOut = () => {
+      setProfileOpen(false);
+      logoutUser();
+    };
+  
 
   return (
     <>
@@ -185,7 +192,8 @@ export default function RecruiterNavbar({ dark, toggleDark }) {
                       </Link>
                     ))}
                     <div style={{ borderTop:`1px solid ${tk.border}` }}>
-                      <button className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm"
+                      <button onClick={handleSignOut}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm"
                         style={{ color:"#EF4444" }}
                         onMouseEnter={e => e.currentTarget.style.background = "rgba(239,68,68,0.06)"}
                         onMouseLeave={e => e.currentTarget.style.background = "transparent"}>

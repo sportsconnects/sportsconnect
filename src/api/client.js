@@ -177,3 +177,9 @@ export const sendMessage        = (conversationId, text) =>
 
 export const getUnreadCount     = () =>
   apiClient.get("/messages/unread")
+
+export const deleteConversation    = (conversationId) =>
+  apiClient.delete(`/messages/conversations/${conversationId}`)
+
+export const markConversationUnread = (conversationId) =>
+  apiClient.patch(`/messages/conversations/${conversationId}/unread`)
