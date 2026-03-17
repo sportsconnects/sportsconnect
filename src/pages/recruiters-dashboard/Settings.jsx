@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router"
 import { toast } from "sonner"
-import RecruiterNavbar    from "../../components/RecruiterNavbar"
+import RecruiterNavbar from "../../components/RecruiterNavbar"
 import RecruiterBottomNav from "../../components/RecruiterBottomNav"
 import { RecruiterSideNav, ACCENT, ACCENT2, THEME } from "../../components/RecruiterUi"
 import {
@@ -12,7 +12,7 @@ import {
 } from "lucide-react"
 import {
   getRecruiterById, updateRecruiterProfile,
-  getCurrentUser, isLoggedIn, logoutUser
+  getCurrentUser, isLoggedIn, logoutUser, deleteAccount
 } from "../../api/client"
 
 
@@ -70,41 +70,42 @@ function Section({ icon: Icon, title, children, dark }) {
 // MAIN PAGE
 export default function RecruiterSettings() {
   const navigate = useNavigate()
-  const [dark, setDark]       = useState(false)
+  const [dark, setDark] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving]   = useState(false)
-  const [saved, setSaved]     = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
   const tk = dark ? THEME.dark : THEME.light
 
   // Account fields
-  const [firstName,    setFirstName]    = useState("")
-  const [lastName,     setLastName]     = useState("")
-  const [institution,  setInstitution]  = useState("")
-  const [role,         setRole]         = useState("")
-  const [email,        setEmail]        = useState("")
-  const [phone,        setPhone]        = useState("")
-  const [bio,          setBio]          = useState("")
-  const [location,     setLocation]     = useState("")
-  const [website,      setWebsite]      = useState("")
-  const [experience,   setExperience]   = useState("")
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [institution, setInstitution] = useState("")
+  const [role, setRole] = useState("")
+  const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
+  const [bio, setBio] = useState("")
+  const [location, setLocation] = useState("")
+  const [website, setWebsite] = useState("")
+  const [experience, setExperience] = useState("")
 
   // Edit toggles
-  const [editField, setEditField] = useState(null) 
+  const [editField, setEditField] = useState(null)
 
- 
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+
   const [notifs, setNotifs] = useState({
-    newAthletes:  true,
-    messages:     true,
+    newAthletes: true,
+    messages: true,
     offerUpdates: true,
     weeklyReport: true,
-    pushMobile:   false,
+    pushMobile: false,
   })
 
   const [prefs, setPrefs] = useState({
-    publicProfile:   true,
+    publicProfile: true,
     showInstitution: true,
-    allowMessages:   true,
-    verifiedOnly:    false,
+    allowMessages: true,
+    verifiedOnly: false,
   })
 
   // ── Load real data on mount
@@ -118,16 +119,16 @@ export default function RecruiterSettings() {
       .then(({ data }) => {
         const u = data.user
         const p = data.profile
-        setFirstName(u?.firstName    || "")
-        setLastName(u?.lastName      || "")
-        setEmail(u?.email            || "")
+        setFirstName(u?.firstName || "")
+        setLastName(u?.lastName || "")
+        setEmail(u?.email || "")
         setPhone(u?.phone || p?.phone || "")
         setInstitution(p?.organization || p?.institution || "")
-        setRole(p?.role              || "")
-        setBio(p?.bio                || "")
-        setLocation(p?.location      || "")
-        setWebsite(p?.website        || "")
-        setExperience(p?.experience  || "")
+        setRole(p?.role || "")
+        setBio(p?.bio || "")
+        setLocation(p?.location || "")
+        setWebsite(p?.website || "")
+        setExperience(p?.experience || "")
       })
       .catch(() => toast.error("Failed to load settings"))
       .finally(() => setLoading(false))
@@ -163,6 +164,16 @@ export default function RecruiterSettings() {
     logoutUser()
   }
 
+  const handleDeleteAccount = async () => {
+    try {
+      toast.loading("Deleting account...", { id: "delete" })
+      await deleteAccount()
+      toast.success("Account deleted", { id: "delete" })
+      setTimeout(() => logoutUser(), 1000)
+    } catch {
+      toast.error("Failed to delete account", { id: "delete" })
+    }
+  }
   const inlineEdit = (field, value, setValue, placeholder = "") => {
     const isEditing = editField === field
     return isEditing ? (
@@ -307,7 +318,7 @@ export default function RecruiterSettings() {
             </Section>
 
             {/* Notifications */}
-            <Section icon={Bell} title="Notifications" dark={dark}>
+            {/* <Section icon={Bell} title="Notifications" dark={dark}>
               {[
                 { key: "newAthletes",  label: "New Athlete Matches",  sub: "Athletes matching your filters"  },
                 { key: "messages",     label: "New Messages",         sub: "When athletes reply to you"      },
@@ -330,10 +341,10 @@ export default function RecruiterSettings() {
                   }
                 />
               ))}
-            </Section>
+            </Section> */}
 
             {/* Privacy */}
-            <Section icon={Eye} title="Profile & Privacy" dark={dark}>
+            {/* <Section icon={Eye} title="Profile & Privacy" dark={dark}>
               {[
                 { key: "publicProfile",   label: "Public Profile",         sub: "Athletes can find you in search"        },
                 { key: "showInstitution", label: "Show Institution",       sub: `Display ${institution || "institution"} on profile` },
@@ -355,10 +366,10 @@ export default function RecruiterSettings() {
                   }
                 />
               ))}
-            </Section>
+            </Section> */}
 
             {/* Security */}
-            <Section icon={Shield} title="Security" dark={dark}>
+            {/* <Section icon={Shield} title="Security" dark={dark}>
               <Row border dark={dark}
                 label="Two-Factor Authentication"
                 sub="Add extra login security"
@@ -380,7 +391,7 @@ export default function RecruiterSettings() {
                   </button>
                 }
               />
-            </Section>
+            </Section> */}
 
             {/* Save */}
             <button
@@ -409,6 +420,7 @@ export default function RecruiterSettings() {
                   <LogOut className="w-3.5 h-3.5" /> Sign Out
                 </button>
                 <button
+                  onClick={() => setShowDeleteModal(true)}
                   className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold border transition-all"
                   style={{ borderColor: "rgba(239,68,68,0.4)", color: "#EF4444" }}
                   onMouseEnter={e => e.currentTarget.style.background = "rgba(239,68,68,0.08)"}
@@ -422,6 +434,59 @@ export default function RecruiterSettings() {
           </div>
         </main>
       </div>
+
+
+      {/* Delete Account Modal */}
+      {showDeleteModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-6 shadow-2xl"
+            style={{ background: tk.surface, border: "1px solid rgba(239,68,68,0.3)" }}
+          >
+            {/* Icon */}
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+              style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}
+            >
+              <Trash2 className="w-6 h-6" style={{ color: "#EF4444" }} />
+            </div>
+
+            {/* Text */}
+            <h2 className="font-black text-lg text-center mb-2" style={{ color: tk.text }}>
+              Delete Account?
+            </h2>
+            <p className="text-sm text-center mb-6" style={{ color: tk.textMuted }}>
+              This will permanently delete your profile, shortlist, offers, and all your data.{" "}
+              <span className="font-bold" style={{ color: "#EF4444" }}>This cannot be undone.</span>
+            </p>
+
+            {/* Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 py-3 rounded-xl text-sm font-bold border transition-all"
+                style={{ borderColor: tk.border, color: tk.textSub }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = ACCENT}
+                onMouseLeave={e => e.currentTarget.style.borderColor = tk.border}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { setShowDeleteModal(false); handleDeleteAccount() }}
+                className="flex-1 py-3 rounded-xl text-sm font-bold text-white transition-all"
+                style={{ background: "#EF4444" }}
+                onMouseEnter={e => e.currentTarget.style.background = "#DC2626"}
+                onMouseLeave={e => e.currentTarget.style.background = "#EF4444"}
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <RecruiterBottomNav dark={dark} />
     </div>

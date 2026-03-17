@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import { Bell, Search, User, ChevronDown, Flame, LogOut, Settings, Trophy, Sun, Moon } from "lucide-react";
 import { getCurrentUser, isLoggedIn, logoutUser } from "../api/client";
+import NotificationBell from "./NotificationBell";
 
 export default function AthleteNavbar({ dark = false, toggleDark }) {
   const [scrolled, setScrolled]         = useState(false);
@@ -133,10 +134,10 @@ export default function AthleteNavbar({ dark = false, toggleDark }) {
 
               {/* Search */}
               <div id="search-bar" className="relative">
-                <button onClick={() => setSearchOpen(!searchOpen)}
+                {/* <button onClick={() => setSearchOpen(!searchOpen)}
                   className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/5 transition-all">
                   <Search className="w-4 h-4" />
-                </button>
+                </button> */}
                 {searchOpen && (
                   <div className="sc-dropdown absolute right-0 top-11 w-64 bg-[#161B22] border border-white/8 rounded-2xl shadow-2xl overflow-hidden">
                     <div className="flex items-center gap-2 px-3 py-2.5">
@@ -155,16 +156,13 @@ export default function AthleteNavbar({ dark = false, toggleDark }) {
               </div>
 
               {/* Notifications */}
-              <button className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/5 transition-all">
-                <Bell className="w-4 h-4" />
-                <span className="sc-notif-dot absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#1DA8FF] rounded-full" />
-              </button>
+             <NotificationBell dark={dark} accentColor="#1DA8FF" />
 
               {/* Recruiter Interest Badge */}
-              <div className="hidden sm:flex items-center gap-1.5 bg-[#1DA8FF]/10 border border-[#1DA8FF]/20 rounded-full px-2.5 py-1">
+              {/* <div className="hidden sm:flex items-center gap-1.5 bg-[#1DA8FF]/10 border border-[#1DA8FF]/20 rounded-full px-2.5 py-1">
                 <Flame className="w-3 h-3 text-[#1DA8FF]" />
                 <span className="text-[#1DA8FF] text-xs font-bold">High Interest</span>
-              </div>
+              </div> */}
 
               {/* Dark mode toggle */}
               <button onClick={toggleDark}

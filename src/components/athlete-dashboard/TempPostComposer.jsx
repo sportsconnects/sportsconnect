@@ -1,61 +1,83 @@
-// src/components/PostComposer.jsx
+// src/components/athlete-dashboard/TempPostComposer.jsx
 
 import { useState, useRef } from "react"
 import { Video, Upload, Youtube, X, Check, AlertCircle } from "lucide-react"
 import { createPost, getCurrentUser } from "../../api/client"
+import { toast } from "sonner"
 
 const THEME = {
   dark: {
-    border: "rgba(255,255,255,0.06)",
-    text: "#F0F6FF",
+    border:    "rgba(255,255,255,0.06)",
+    text:      "#F0F6FF",
     textMuted: "#4B5563",
+    hover:     "rgba(255,255,255,0.025)",
   },
   light: {
-    border: "#E5E7EB",
-    text: "#111827",
+    border:    "#E5E7EB",
+    text:      "#111827",
     textMuted: "#9CA3AF",
+    hover:     "rgba(0,0,0,0.025)",
   }
 }
 
 const ACCENT = "#1DA8FF"
 
-export default function PostComposer({ dark }) {
-  const [text, setText] = useState("")
+// ─────────────────────────────────────────────────────────────────────────────
+// POST COMPOSER
+// Props:
+//   dark      — boolean
+//   user      — profile card user object (for initials/avatar)
+//   onPost    — callback(newPost) called after successful post so parent can
+//               prepend it to the feed without a full refetch
+// ─────────────────────────────────────────────────────────────────────────────
+export default function PostComposer({ dark, user, onPost }) {
+  const [text,    setText]    = useState("")
   const [focused, setFocused] = useState(false)
-  const [mode, setMode] = useState(null)   // null | "youtube" | "upload"
-  const [ytLink, setYtLink] = useState("")
-  const [videoFile, setFile] = useState(null)
-  const [sport, setSport] = useState("")
+  const [mode,    setMode]    = useState(null)   // null | "youtube" | "upload"
+  const [ytLink,  setYtLink]  = useState("")
+  const [videoFile, setFile]  = useState(null)
+  const [sport,   setSport]   = useState("")
   const [posting, setPosting] = useState(false)
-  const [error, setError] = useState("")
+  const [error,   setError]   = useState("")
   const fileRef = useRef(null)
 
   const authUser = getCurrentUser()
-  const initials = authUser ? `${authUser.firstName?.[0] ?? ""}${authUser.lastName?.[0] ?? ""}`.toUpperCase() : "?"
+  const initials = authUser
+    ? `${authUser.firstName?.[0] ?? ""}${authUser.lastName?.[0] ?? ""}`.toUpperCase()
+    : "?"
 
   const isYtValid = ytLink.includes("youtube.com") || ytLink.includes("youtu.be")
-  const getYtId = url => url.match(/(?:v=|youtu\.be\/)([^&\n?#]+)/)?.[1] ?? null
-  const canPost = text.trim() && (mode === null || (mode === "youtube" && isYtValid) || (mode === "upload" && videoFile))
+  const getYtId   = url => url.match(/(?:v=|youtu\.be\/)([^&\n?#]+)/)?.[1] ?? null
+  const canPost   = text.trim() &&
+    (mode === null ||
+     (mode === "youtube" && isYtValid) ||
+     (mode === "upload"  && videoFile))
 
   const tk = dark ? THEME.dark : THEME.light
-
-
 
   const handlePost = async () => {
     if (!canPost || posting) return
     setPosting(true)
     setError("")
     try {
-      await createPost({
-        caption: text.trim(),
-        videoId: mode === "youtube" ? getYtId(ytLink) : null,
-        videoTitle: mode === "youtube" ? text.trim() : null,
-        sport: sport || null,
+      const { data } = await createPost({
+        caption:    text.trim(),
+        videoId:    mode === "youtube" ? getYtId(ytLink) : null,
+        videoTitle: mode === "youtube" ? text.trim()     : null,
+        sport:      sport || null,
       })
-      // reset
+
+      // Notify parent to prepend new post to feed
+      onPost?.(data.post)
+
+      toast.success("Post shared!")
+
+      // Reset
       setText(""); setYtLink(""); setFile(null); setMode(null); setSport(""); setFocused(false)
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to post. Try again.")
+      const msg = err?.response?.data?.message || "Failed to post. Try again."
+      setError(msg)
+      toast.error(msg)
     } finally {
       setPosting(false)
     }
@@ -68,14 +90,16 @@ export default function PostComposer({ dark }) {
     >
       <div className="flex gap-3">
 
-        {/* ── Current user avatar ── */}
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+        {/* Avatar */}
+        <div
+          className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+        >
           {initials}
         </div>
 
         <div className="flex-1">
 
-          {/* ── Text input ── */}
+          {/* Text area */}
           <textarea
             value={text}
             onChange={e => setText(e.target.value)}
@@ -96,7 +120,10 @@ export default function PostComposer({ dark }) {
                 onChange={e => setYtLink(e.target.value)}
                 placeholder="https://youtube.com/watch?v=..."
                 className="flex-1 bg-transparent text-xs outline-none"
-                style={{ color: tk.text, borderBottom: `1px solid ${isYtValid ? "#10B981" : tk.border}` }}
+                style={{
+                  color:        tk.text,
+                  borderBottom: `1px solid ${isYtValid ? "#10B981" : tk.border}`,
+                }}
               />
               {isYtValid
                 ? <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#10B981" }} />
@@ -108,28 +135,33 @@ export default function PostComposer({ dark }) {
             </div>
           )}
 
-          {/* File upload indicator */}
+          {/* File upload */}
           {mode === "upload" && (
             <div className="mt-2 flex items-center gap-2">
-              <input ref={fileRef} type="file" accept="video/*" className="hidden"
-                onChange={e => setFile(e.target.files[0] || null)} />
-              {videoFile
-                ? (
-                  <div className="flex items-center gap-2 flex-1">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <span className="text-xs truncate" style={{ color: tk.text }}>{videoFile.name}</span>
-                    <button onClick={() => setFile(null)} className="ml-auto">
-                      <X className="w-3.5 h-3.5" style={{ color: tk.textMuted }} />
-                    </button>
-                  </div>
-                ) : (
-                  <button onClick={() => fileRef.current?.click()}
-                    className="text-xs font-semibold px-3 py-1.5 rounded-lg"
-                    style={{ background: `${ACCENT}15`, color: ACCENT }}>
-                    Choose video file
+              <input
+                ref={fileRef}
+                type="file"
+                accept="video/*"
+                className="hidden"
+                onChange={e => setFile(e.target.files[0] || null)}
+              />
+              {videoFile ? (
+                <div className="flex items-center gap-2 flex-1">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span className="text-xs truncate" style={{ color: tk.text }}>{videoFile.name}</span>
+                  <button onClick={() => setFile(null)} className="ml-auto">
+                    <X className="w-3.5 h-3.5" style={{ color: tk.textMuted }} />
                   </button>
-                )
-              }
+                </div>
+              ) : (
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg"
+                  style={{ background: `${ACCENT}15`, color: ACCENT }}
+                >
+                  Choose video file
+                </button>
+              )}
               <button onClick={() => { setMode(null); setFile(null) }}>
                 <X className="w-3.5 h-3.5" style={{ color: tk.textMuted }} />
               </button>
@@ -143,15 +175,14 @@ export default function PostComposer({ dark }) {
             </p>
           )}
 
-          {/* ── Action bar ── */}
+          {/* Action bar */}
           <div
             className="pt-3 flex items-center justify-between transition-opacity"
             style={{
               borderTop: `1px solid ${tk.border}`,
-              opacity: focused || text ? 1 : 0.5,
+              opacity:   focused || text ? 1 : 0.5,
             }}
           >
-            {/* Upload buttons */}
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setMode(mode === "youtube" ? null : "youtube")}
@@ -163,7 +194,10 @@ export default function PostComposer({ dark }) {
               </button>
 
               <button
-                onClick={() => { setMode(mode === "upload" ? null : "upload"); setTimeout(() => fileRef.current?.click(), 50) }}
+                onClick={() => {
+                  setMode(mode === "upload" ? null : "upload")
+                  setTimeout(() => fileRef.current?.click(), 50)
+                }}
                 className="flex items-center gap-1.5 text-xs font-semibold transition-opacity hover:opacity-70"
                 style={{ color: mode === "upload" ? "#10B981" : ACCENT }}
               >
@@ -172,7 +206,6 @@ export default function PostComposer({ dark }) {
               </button>
             </div>
 
-            {/* Post button */}
             <button
               onClick={handlePost}
               disabled={!canPost || posting}

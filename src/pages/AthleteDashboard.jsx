@@ -256,6 +256,10 @@ export default function AthleteDashboard() {
     }
   }
 
+  const handleNewPost = (post) => {
+  setFeedPosts(prev => [post, ...prev])
+}
+
   // ── Feed filter
   const filters = ["all", "Soccer", "Basketball", "Track & Field", "Swimming"]
   const filtered = feedPosts
@@ -390,7 +394,7 @@ export default function AthleteDashboard() {
           <SCCoachBanner dark={dark} profile={athleteProfile} />
 
           {/* 5. POST COMPOSER */}
-          <PostComposer dark={dark} user={profileCardUser} />
+          <PostComposer dark={dark} user={profileCardUser} onPost={handleNewPost} />
 
           {/* 6. FEED POSTS */}
           <div className="pb-24 lg:pb-8">
@@ -404,7 +408,7 @@ export default function AthleteDashboard() {
               feedLoading
                 ? <div className="px-4 py-16 text-center text-sm" style={{ color: tk.textMuted }}>Loading feed...</div>
                 : filtered.map(post => (
-                  <PostCard key={post._id} post={post} dark={dark} onLike={handleLike} />
+                  <PostCard key={post._id} post={post} dark={dark} onLike={handleLike} onDelete={(postId) => setFeedPosts(prev => prev.filter(p => p._id !== postId))} />
                 ))
             )}
           </div>

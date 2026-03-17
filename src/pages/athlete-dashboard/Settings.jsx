@@ -13,7 +13,7 @@ import {
 
 import {
   getCurrentUser, isLoggedIn, logoutUser,
-  updateAthleteProfile
+  updateAthleteProfile, deleteAccount
 } from "../../api/client"
 
 const ACCENT = "#1DA8FF"
@@ -116,6 +116,7 @@ export default function AthleteSettings() {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
+
   // ── Load real user data 
   useEffect(() => {
     if (!isLoggedIn()) {
@@ -167,16 +168,16 @@ export default function AthleteSettings() {
   }
 
   // ── Delete account
-  const handleDeleteAccount = async () => {
-    try {
-      toast.loading("Deleting account...", { id: "delete" })
-      // await deleteAccount()
-      toast.success("Account deleted successfully", { id: "delete" })
-      setTimeout(() => logoutUser(), 1500)
-    } catch (err) {
-      toast.error("Failed to delete account. Try again.", { id: "delete" })
-    }
+ const handleDeleteAccount = async () => {
+  try {
+    toast.loading("Deleting account...", { id: "delete" })
+    await deleteAccount()
+    toast.success("Account deleted", { id: "delete" })
+    setTimeout(() => logoutUser(), 1000)
+  } catch (err) {
+    toast.error("Failed to delete account. Try again.", { id: "delete" })
   }
+}
 
   return (
     <div className="min-h-screen transition-colors duration-300"

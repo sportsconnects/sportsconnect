@@ -129,14 +129,17 @@ export const getFeedPosts = (params) =>
 export const getAthletePostsById = (userId) =>
   apiClient.get(`/posts/athlete/${userId}`)
 
+export const sharePost = (postId, caption = "") =>
+  apiClient.post(`/posts/${postId}/share`, { caption })
+
 export const createPost = (data) =>
   apiClient.post("/posts", data)
 
 export const likePost = (postId) =>
   apiClient.patch(`/posts/${postId}/like`)
 
-export const commentOnPost = (postId, data) =>
-  apiClient.post(`/posts/${postId}/comment`, data)
+export const commentOnPost = (postId, text) =>
+  apiClient.post(`/posts/${postId}/comment`, { text })
 
 export const deletePost = (postId) =>
   apiClient.delete(`/posts/${postId}`)
@@ -163,23 +166,28 @@ export const setupAthleteProfile = (data) =>
   apiClient.post("/athletes/profile/setup", data)
 
 // Messages
-export const startConversation  = (recipientId) =>
+export const startConversation = (recipientId) =>
   apiClient.post("/messages/conversations", { recipientId })
 
-export const getConversations   = () =>
+export const getConversations = () =>
   apiClient.get("/messages/conversations")
 
-export const getMessages        = (conversationId) =>
+export const getMessages = (conversationId) =>
   apiClient.get(`/messages/conversations/${conversationId}/messages`)
 
-export const sendMessage        = (conversationId, text) =>
+export const sendMessage = (conversationId, text) =>
   apiClient.post(`/messages/conversations/${conversationId}/messages`, { text })
 
-export const getUnreadCount     = () =>
+export const getUnreadCount = () =>
   apiClient.get("/messages/unread")
 
-export const deleteConversation    = (conversationId) =>
+export const deleteConversation = (conversationId) =>
   apiClient.delete(`/messages/conversations/${conversationId}`)
 
 export const markConversationUnread = (conversationId) =>
   apiClient.patch(`/messages/conversations/${conversationId}/unread`)
+
+export const getNotifications = (params) => apiClient.get("/notifications", { params })
+export const markAllNotificationsRead = () => apiClient.patch("/notifications/read")
+export const markNotificationRead = (id) => apiClient.patch(`/notifications/${id}/read`)
+export const deleteAccount = () => apiClient.delete("/auth/account")

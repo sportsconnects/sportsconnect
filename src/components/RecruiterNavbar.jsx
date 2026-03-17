@@ -6,6 +6,7 @@ import logo from "../../src/assets/images/sc12.png"
 import { Bell, Search, ChevronDown, LogOut, Settings, User, Sun, Moon } from "lucide-react"
 import { ACCENT, ACCENT2, THEME } from "../../src/components/RecruiterUi"
 import { logoutUser } from "../api/client"
+import NotificationBell from "../components/NotificationBell"
 
 const NAV_LINKS = [
   { label:"Dashboard",  to:"/recruiterdashboard"  },
@@ -109,11 +110,11 @@ export default function RecruiterNavbar({ dark, toggleDark }) {
 
               {/* Search */}
               <div id="rec-search" className="relative">
-                <button onClick={() => setSearchOpen(!searchOpen)}
+                {/* <button onClick={() => setSearchOpen(!searchOpen)}
                   className="w-9 h-9 rounded-xl flex items-center justify-center transition-all"
                   style={{ color:tk.textMuted, background:searchOpen?`${ACCENT}10`:"transparent" }}>
                   <Search className="w-4 h-4" />
-                </button>
+                </button> */}
                 {searchOpen && (
                   <div className="rec-drop absolute right-0 top-11 w-64 rounded-2xl overflow-hidden shadow-2xl z-50"
                     style={{ background:tk.surface, border:`1px solid ${tk.border}` }}>
@@ -139,11 +140,7 @@ export default function RecruiterNavbar({ dark, toggleDark }) {
               </div>
 
               {/* Notifications */}
-              <button className="relative w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ color:tk.textMuted }}>
-                <Bell className="w-4 h-4" />
-                <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full" style={{ background:ACCENT }} />
-              </button>
+             <NotificationBell dark={dark} accentColor="#F59E0B" />
 
               {/* Theme toggle */}
               <button onClick={toggleDark}
