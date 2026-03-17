@@ -315,7 +315,7 @@ export default function AthleteSettings() {
             </Section>
 
             {/* ── Notifications ── */}
-            <Section icon={Bell} title="Notifications" dark={dark}>
+            {/* <Section icon={Bell} title="Notifications" dark={dark}>
               {[
                 { key: "recruiterViews", label: "Recruiter Views", sub: "When a scout views your profile" },
                 { key: "messages", label: "New Messages", sub: "When recruiters message you" },
@@ -330,10 +330,10 @@ export default function AthleteSettings() {
                   right={<Toggle value={notifs[key]} onChange={() => toggleNotif(key)} dark={dark} />}
                 />
               ))}
-            </Section>
+            </Section> */}
 
             {/* ── Privacy ── */}
-            <Section icon={Eye} title="Privacy" dark={dark}>
+            {/* <Section icon={Eye} title="Privacy" dark={dark}>
               {[
                 { key: "publicProfile", label: "Public Profile", sub: "Anyone can find and view your profile" },
                 { key: "showGPA", label: "Show GPA", sub: "Display your academic score publicly" },
@@ -346,10 +346,10 @@ export default function AthleteSettings() {
                   right={<Toggle value={privacy[key]} onChange={() => togglePrivacy(key)} dark={dark} />}
                 />
               ))}
-            </Section>
+            </Section> */}
 
             {/* ── Security ── */}
-            <Section icon={Shield} title="Security" dark={dark}>
+            {/* <Section icon={Shield} title="Security" dark={dark}>
               <SettingRow border dark={dark}
                 label="Two-Factor Authentication"
                 sub="Add an extra layer of security"
@@ -369,7 +369,7 @@ export default function AthleteSettings() {
                   </button>
                 }
               />
-            </Section>
+            </Section> */}
 
             {/* ── Save button ── */}
             <button onClick={handleSave} disabled={loading}

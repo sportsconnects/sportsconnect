@@ -336,8 +336,8 @@ function AchievementsTab({ profile, dark }) {
 function ProfileHeader({ athlete, profile, dark, isOwner, athleteId }) {
   const [following, setFollowing] = useState(false)
   const [followLoading, setFollowLoading] = useState(false)
-  const [followerCount, setFollowerCount] = useState(profile?.followers || 0)
-  const [followingCount, setFollowingCount] = useState(profile?.following || 0)
+  const [followerCount, setFollowerCount] = useState(0)
+const [followingCount, setFollowingCount] = useState(0)
 
   const tk = dark ? THEME.dark : THEME.light
 
@@ -355,21 +355,21 @@ function ProfileHeader({ athlete, profile, dark, isOwner, athleteId }) {
   const recruiterViews = profile?.recruiterViews || 0
 
   useEffect(() => {
-    if (isOwner || !athleteId) return
+  if (!athleteId) return
 
-    // Get follow status
+  // Always fetch real counts from Follow collection
+  Promise.all([getFollowers(athleteId), getFollowing(athleteId)])
+    .then(([f1, f2]) => {
+      setFollowerCount(f1.data.count ?? f1.data.followers?.length ?? 0)
+      setFollowingCount(f2.data.count ?? f2.data.following?.length ?? 0)
+    })
+    .catch(() => { })
+  if (!isOwner) {
     getFollowStatus(athleteId)
-      .then(({ data }) => setFollowing(data.isFollowing))
+      .then(({ data }) => setFollowing(data.following ?? data.isFollowing ?? false))
       .catch(() => { })
-
-    // Get real follower/following counts
-    Promise.all([getFollowers(athleteId), getFollowing(athleteId)])
-      .then(([f1, f2]) => {
-        setFollowerCount(f1.data.count ?? f1.data.followers?.length ?? 0)
-        setFollowingCount(f2.data.count ?? f2.data.following?.length ?? 0)
-      })
-      .catch(() => { })
-  }, [athleteId, isOwner])
+  }
+}, [athleteId, isOwner])
 
   const handleFollow = async () => {
     setFollowLoading(true)
@@ -433,12 +433,12 @@ function ProfileHeader({ athlete, profile, dark, isOwner, athleteId }) {
                 </button>
               </>
             )}
-            <button className="w-9 h-9 rounded-xl flex items-center justify-center border transition-all"
+            {/* <button className="w-9 h-9 rounded-xl flex items-center justify-center border transition-all"
               style={{ borderColor: tk.border, color: tk.textMuted }}
               onMouseEnter={e => e.currentTarget.style.borderColor = ACCENT}
               onMouseLeave={e => e.currentTarget.style.borderColor = tk.border}>
               <Share2 className="w-4 h-4" />
-            </button>
+            </button> */}
           </div>
         </div>
 
