@@ -187,7 +187,13 @@ export const deleteConversation = (conversationId) =>
 export const markConversationUnread = (conversationId) =>
   apiClient.patch(`/messages/conversations/${conversationId}/unread`)
 
+//Notifications
 export const getNotifications = (params) => apiClient.get("/notifications", { params })
 export const markAllNotificationsRead = () => apiClient.patch("/notifications/read")
 export const markNotificationRead = (id) => apiClient.patch(`/notifications/${id}/read`)
+
+//Delete Account
 export const deleteAccount = () => apiClient.delete("/auth/account")
+
+//Filter search on Athlete Recruiters Tab
+export const getRecruiters = (params) => apiClient.get("/recruiters", { params })

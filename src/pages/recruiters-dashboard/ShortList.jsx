@@ -115,7 +115,7 @@ function AthleteProfileModal({ athlete, dark, onClose, onMessage }) {
               </div>
             </div>
             <button
-              onClick={() => { onMessage(athlete); onClose() }}
+              onClick={() => { onMessage(athlete, athlete.id || athlete._id); onClose() }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white flex-shrink-0 hover:opacity-90 transition-opacity"
               style={{ background: `linear-gradient(135deg,${ACCENT},${ACCENT2})` }}
             >
@@ -236,18 +236,20 @@ function ShortlistCard({ item, dark, onRemove, onTogglePriority, onNoteUpdate, o
 
   // Build athlete object for modal
   const athleteForModal = {
-    name,
-    sport:        athlete.sport     || "—",
-    position:     athlete.position  || "—",
-    region:       athlete.region    || "—",
-    classOf:      athlete.classOf   || "—",
-    gpa:          athlete.gpa       || "—",
-    height:       athlete.height    || "—",
-    verified:     athlete.verified  || false,
-    achievements: athlete.achievements || [],
-    highlights:   athlete.highlights   || [],
-    bio:          athlete.bio          || null,
-  }
+  id:           athleteId,           
+  _id:          athleteId,          
+  name,
+  sport:        athlete.sport     || "—",
+  position:     athlete.position  || "—",
+  region:       athlete.region    || "—",
+  classOf:      athlete.classOf   || "—",
+  gpa:          athlete.gpa       || "—",
+  height:       athlete.height    || "—",
+  verified:     athlete.verified  || false,
+  achievements: athlete.achievements || [],
+  highlights:   athlete.highlights   || [],
+  bio:          athlete.bio          || null,
+}
 
   return (
     <div

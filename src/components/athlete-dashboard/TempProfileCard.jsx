@@ -136,12 +136,12 @@ export default function ProfileCard({ user, dark }) {
         </div>
 
         {/* ── Edit profile button ── */}
-        <button
+        {/* <button
           className="w-full text-white rounded-xl py-2 text-sm font-bold transition-opacity hover:opacity-90"
           style={{ background: ACCENT }}
         >
           Edit Profile
-        </button>
+        </button> */}
 
       </div>
     </div>

@@ -21,6 +21,8 @@ import RecruiterMessages from "./pages/recruiters-dashboard/Messages";
 import RecruiterProfile from "./pages/recruiters-dashboard/Profile";
 import RecruiterSettings from "./pages/recruiters-dashboard/Settings";
 
+import ProtectedRoute from "./components/ProtectedRoute";
+
 
 const sportsConnect = createBrowserRouter([
 { path: '/', element: <Home />},
@@ -29,26 +31,26 @@ const sportsConnect = createBrowserRouter([
 { path: '/signin', element: <SignIn />},
 
 // Athlete Dashboard routes 
-{ path: '/athletedashboard', element: <AthleteDashboard />},
-{ path: '/athleteexplore', element: <AthleteExplore />},
-{ path: '/athleterecruiters', element: <AthleteRecruiters />},
-{ path: '/athleteprofile', element: <AthleteProfile />},
-{ path: '/athletepost', element: <AthletePost />},
-{ path: '/athletesettings', element: <AthleteSettings />},
-{ path: '/athletemessages', element: <AthleteMessages />},
-{ path: '/athleteai', element: <AthleteAI />},
-{ path: '/athleteonboarding', element: <AthleteOnboarding />},
+{ path: '/athletedashboard', element: <ProtectedRoute role="athlete"><AthleteDashboard /> </ProtectedRoute>},
+{ path: '/athleteexplore', element:<ProtectedRoute role="athlete"><AthleteExplore /> </ProtectedRoute>},
+{ path: '/athleterecruiters', element:<ProtectedRoute role="athlete"><AthleteRecruiters /> </ProtectedRoute>},
+{ path: '/athleteprofile', element:<ProtectedRoute role="athlete"><AthleteProfile /> </ProtectedRoute>},
+{ path: '/athletepost', element:<ProtectedRoute role="athlete"> <AthletePost /> </ProtectedRoute>},
+{ path: '/athletesettings', element:<ProtectedRoute role="athlete"> <AthleteSettings /> </ProtectedRoute>},
+{ path: '/athletemessages', element:<ProtectedRoute role="athlete"><AthleteMessages /> </ProtectedRoute>},
+{ path: '/athleteai', element:<ProtectedRoute role="athlete"><AthleteAI /> </ProtectedRoute>},
+{ path: '/athleteonboarding', element:<ProtectedRoute role="athlete"> <AthleteOnboarding /> </ProtectedRoute>},
 
 
 
 
 // Recruiter Dashboard routes
-{ path: '/recruiterdashboard', element: <RecruiterDashboard />},
-{ path: '/recruiterathletes', element: <RecruiterAthletes />},
-{ path: '/recruitershortlist', element: <RecruiterShortList />},
-{ path: '/recruitermessages', element: <RecruiterMessages />},
-{ path: '/recruiterprofile', element: <RecruiterProfile />},
-{ path: '/recruitersettings', element: <RecruiterSettings />}
+{ path: '/recruiterdashboard', element:<ProtectedRoute role="recruiter"> <RecruiterDashboard /> </ProtectedRoute>},
+{ path: '/recruiterathletes', element:<ProtectedRoute role="recruiter"><RecruiterAthletes /> </ProtectedRoute>},
+{ path: '/recruitershortlist', element:<ProtectedRoute role="recruiter"><RecruiterShortList /> </ProtectedRoute>},
+{ path: '/recruitermessages', element:<ProtectedRoute role="recruiter"> <RecruiterMessages /> </ProtectedRoute>},
+{ path: '/recruiterprofile', element:<ProtectedRoute role="recruiter"><RecruiterProfile /> </ProtectedRoute>},
+{ path: '/recruitersettings', element:<ProtectedRoute role="recruiter"> <RecruiterSettings /> </ProtectedRoute>}
 ])
 
 

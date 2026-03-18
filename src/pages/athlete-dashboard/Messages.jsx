@@ -333,11 +333,16 @@ export default function AthleteMessages() {
     const socket = connectSocket(token)
 
     socket.on("new_message", ({ conversationId, message }) => {
+      const senderId = message.sender?._id || message.sender
+
+      // Skip messages WE sent — already handled by optimistic update
+      if (senderId?.toString() === currentUserId?.toString()) return
+
       setActiveId(current => {
         if (current === conversationId) {
           setMessages(prev => {
-            const senderId = message.sender?._id || message.sender
-            if (senderId?.toString() === currentUserId?.toString()) return prev
+            // Extra safety — don't add if message ID already exists
+            if (prev.some(m => m._id === message._id)) return prev
             return [...prev, message]
           })
         }
@@ -346,16 +351,11 @@ export default function AthleteMessages() {
 
       setConvos(prev => prev.map(c => {
         if (c._id !== conversationId) return c
-        const senderId = message.sender?._id || message.sender
-        const isCurrentConvo = c._id === activeId
         return {
           ...c,
           lastMessage: { text: message.text },
           lastMessageAt: message.createdAt,
-          unread: isCurrentConvo ? 0
-            : senderId?.toString() !== currentUserId?.toString()
-              ? (c.unread || 0) + 1
-              : c.unread,
+          unread: conversationId === activeId ? 0 : (c.unread || 0) + 1,
         }
       }))
     })

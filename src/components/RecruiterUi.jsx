@@ -1,6 +1,4 @@
 // src/components/recruiter/RecruiterUI.jsx
-// Shared reusable components for all recruiter pages
-
 import { useState, useEffect } from "react"
 import { Link, useLocation } from "react-router"
 import {
@@ -243,8 +241,6 @@ export function RecruiterSideNav({ dark }) {
     // Seed from localStorage immediately
     setName(`${user.firstName} ${user.lastName}`)
     setInitials(`${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase())
-
-    // Then fetch full profile for institution
     getRecruiterById(id)
       .then(({ data }) => {
         const p = data.profile
@@ -253,7 +249,7 @@ export function RecruiterSideNav({ dark }) {
         setInitials(`${u.firstName?.[0] || ""}${u.lastName?.[0] || ""}`.toUpperCase())
         setInstitution(p?.organization || p?.institution || "")
       })
-      .catch(() => { }) // silently fail — local data already shown
+      .catch(() => { }) 
   }, [])
 
   return (

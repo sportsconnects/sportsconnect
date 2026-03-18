@@ -7,34 +7,51 @@ let socket = null
 export const connectSocket = (token) => {
   if (socket?.connected) return socket
 
+    if (socket) {
+    socket.disconnect()
+    socket = null
+  }
+
+  
   socket = io(URL, {
     auth:                  { token },
-    transports:            ["websocket", "polling"], // try websocket first, fall back to polling
+    transports:            ["polling", "websocket"], 
     reconnection:          true,
-    reconnectionDelay:     1000,
+    reconnectionDelay:     2000,
     reconnectionAttempts:  Infinity,
-    timeout:               20000,
+    timeout:               30000,
     forceNew:              false,
+    upgrade:               true,  
   })
 
   socket.on("connect", () => {
-    console.log("Socket connected:", socket.id)
+    console.log("Socket connected via:", socket.io.engine.transport.name)
   })
 
   socket.on("disconnect", (reason) => {
     console.log("Socket disconnected:", reason)
-    // If server closed it, reconnect manually
     if (reason === "io server disconnect") {
       socket.connect()
     }
   })
 
   socket.on("connect_error", (err) => {
-    console.error("Socket connection error:", err.message)
+    console.error("Socket error:", err.message)
   })
+
+  socket.on("connect", () => {
+  console.log("Socket connected via:", socket.io.engine.transport.name)
+  
+  // Listen for transport upgrade
+  socket.io.engine.on("upgrade", (transport) => {
+    console.log("Socket upgraded to:", transport.name)
+  })
+})
 
   return socket
 }
+
+
 
 export const disconnectSocket = () => {
   if (socket) {
