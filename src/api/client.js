@@ -19,16 +19,19 @@ apiClient.interceptors.request.use(
 );
 
 apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  response => response,
+  error => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("user");
-      window.location.href = "/signin";
+      localStorage.removeItem("authToken")
+      localStorage.removeItem("user")
+      toast.error("Your session has expired. Please sign in again.")
+      setTimeout(() => {
+        window.location.href = "/signin"
+      }, 1500) 
     }
-    return Promise.reject(error);
+    return Promise.reject(error)
   }
-);
+)
 
 
 export const registerAthlete = (formData) =>
