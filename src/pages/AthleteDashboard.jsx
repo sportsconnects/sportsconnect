@@ -6,7 +6,7 @@ import { toast } from "sonner"
 import AthleteNavbar from "../components/AthleteNavbar"
 import DesktopSideNav from "../components/athlete-dashboard/TempDesktopSideNav"
 import MobileBottomNav from "../components/athlete-dashboard/TempMobileBottomNav"
-import RecruiterBanner from "../components/athlete-dashboard/TempRecruiterBanner"
+// import RecruiterBanner from "../components/athlete-dashboard/TempRecruiterBanner"
 import PostComposer from "../components/athlete-dashboard/TempPostComposer"
 import PostCard from "../components/athlete-dashboard/TempPostCard"
 import ProfileCard from "../components/athlete-dashboard/TempProfileCard"
@@ -389,7 +389,7 @@ export default function AthleteDashboard() {
           </div>
 
           {/* 4. RECRUITER BANNER */}
-          <RecruiterBanner dark={dark} />
+          {/* <RecruiterBanner dark={dark} /> */}
 
           <SCCoachBanner dark={dark} profile={athleteProfile} />
 

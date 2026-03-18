@@ -22,18 +22,12 @@ const THEME = {
 
 const ACCENT = "#1DA8FF"
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // POST COMPOSER
-// Props:
-//   dark      — boolean
-//   user      — profile card user object (for initials/avatar)
-//   onPost    — callback(newPost) called after successful post so parent can
-//               prepend it to the feed without a full refetch
-// ─────────────────────────────────────────────────────────────────────────────
 export default function PostComposer({ dark, user, onPost }) {
   const [text,    setText]    = useState("")
   const [focused, setFocused] = useState(false)
-  const [mode,    setMode]    = useState(null)   // null | "youtube" | "upload"
+  const [mode,    setMode]    = useState(null)   
   const [ytLink,  setYtLink]  = useState("")
   const [videoFile, setFile]  = useState(null)
   const [sport,   setSport]   = useState("")

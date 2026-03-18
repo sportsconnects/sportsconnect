@@ -126,7 +126,7 @@ export default function DesktopSideNav({ active, setActive, dark }) {
           </p>
         </div>
 
-        <MoreHorizontal className="w-4 h-4 flex-shrink-0" style={{ color: tk.textMuted }} />
+        {/* <MoreHorizontal className="w-4 h-4 flex-shrink-0" style={{ color: tk.textMuted }} /> */}
       </div>
     </aside>
   )
