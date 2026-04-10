@@ -5,6 +5,7 @@ import Footer from "../components/Footer"
 import { User, Eye, EyeOff } from "lucide-react"
 import { registerAthlete } from "../../src/api/client"
 import { toast } from "sonner"
+import { resendVerification } from "../../src/api/client"
 
 export default function AthleteSignUp() {
   const navigate = useNavigate()
@@ -23,6 +24,8 @@ export default function AthleteSignUp() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [showEmailSent, setShowEmailSent] = useState(false)
+  const [sentEmail, setSentEmail] = useState("")
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -30,7 +33,6 @@ export default function AthleteSignUp() {
   }
 
   const handleSubmit = async () => {
-    // Validation — use toast.error instead of setError
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
       return toast.error("Please fill in all required fields")
     }
@@ -42,27 +44,64 @@ export default function AthleteSignUp() {
     }
 
     const toastId = toast.loading("Creating your account...")
-
     try {
       setLoading(true)
       const { data } = await registerAthlete(formData)
-
-      localStorage.setItem("authToken", data.token)
-      localStorage.setItem("user", JSON.stringify(data.user))
-
-      toast.success("Account created successfully! Redirecting...", { id: toastId })
-
-      localStorage.setItem("authToken", data.token)
-      localStorage.setItem("user", JSON.stringify(data.user))
-      toast.success("Account created! Let's set up your profile 🎉", { id: toastId })
-      setTimeout(() => navigate("/athleteonboarding"), 1200)
-
+      toast.success("Account created! Check your email.", { id: toastId })
+      setSentEmail(formData.email)
+      setShowEmailSent(true)
     } catch (err) {
-      toast.error(err.response?.data?.message || "Something went wrong. Try again.", { id: toastId })
+      toast.error(err.response?.data?.message || "Something went wrong.", { id: toastId })
     } finally {
       setLoading(false)
     }
   }
+
+
+  if (showEmailSent) {
+    return (
+      <>
+        <Navbar />
+        <div className="bg-gray-200 min-h-screen flex items-center justify-center p-4"
+          style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
+          <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md text-center">
+            <div style={{ fontSize: 56, marginBottom: 16 }}>📬</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your email!</h2>
+            <p className="text-gray-600 mb-1">We sent a verification link to</p>
+            <p className="font-bold text-blue-500 mb-4">{sentEmail}</p>
+            <p className="text-gray-500 text-sm mb-6">
+              Click the link in the email to activate your account.
+              The link expires in 24 hours.
+            </p>
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-gray-600">
+              <p className="font-semibold mb-1">Didn't receive it?</p>
+              <p>Check your spam folder or{" "}
+                <button
+                  onClick={async () => {
+                    try {
+                      await resendVerification(sentEmail)
+                      toast.success("Verification email resent!")
+                    } catch {
+                      toast.error("Failed to resend. Try again.")
+                    }
+                  }}
+
+                  className="text-blue-500 font-semibold underline cursor-pointer bg-transparent border-none"
+                >
+                  click here to resend
+                </button>
+              </p>
+            </div>
+            <Link to="/signin" className="block mt-6 text-sm text-gray-500 hover:text-gray-700">
+              Already verified? Sign in →
+            </Link>
+          </div>
+        </div>
+        <Footer />
+      </>
+    )
+  }
+
 
   return (
     <>

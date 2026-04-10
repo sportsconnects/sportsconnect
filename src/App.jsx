@@ -14,6 +14,8 @@ import AthleteMessages from "./pages/athlete-dashboard/Messages";
 import AthleteAI from "./pages/athlete-dashboard/AI";
 import AthleteOnboarding from "./pages/AthleteOnboarding"
 
+import VerifyEmail from "./pages/VerifyEmail";
+
 // Recruiter Dashboard pages
 import RecruiterAthletes from "./pages/recruiters-dashboard/Athletes";
 import RecruiterShortList from "./pages/recruiters-dashboard/ShortList";
@@ -29,6 +31,7 @@ const sportsConnect = createBrowserRouter([
 { path: '/recruitersignup', element: <RecruiterSignUp />},
 { path: '/athletesignup', element: <AthleteSignUp />},
 { path: '/signin', element: <SignIn />},
+{ path: '/verify-email', element: <VerifyEmail /> },
 
 // Athlete Dashboard routes 
 { path: '/athletedashboard', element: <ProtectedRoute role="athlete"><AthleteDashboard /> </ProtectedRoute>},

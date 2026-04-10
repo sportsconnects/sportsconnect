@@ -200,3 +200,6 @@ export const deleteAccount = () => apiClient.delete("/auth/account")
 
 //Filter search on Athlete Recruiters Tab
 export const getRecruiters = (params) => apiClient.get("/recruiters", { params })
+
+export const resendVerification = (email) =>
+  apiClient.post("/auth/resend-verification", { email })

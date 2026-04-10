@@ -55,8 +55,8 @@ export default function Footer() {
                         <h3 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">Contact</h3>
                         <ul className="space-y-3 sm:space-y-4">
                             <li className="font-bold text-sm">+233 20 209 3760</li>
-                            <li className="font-bold text-sm">sportsconnectrecruiting@gmail.com</li>
-                            <li className="font-bold text-sm">Location here</li>
+                            <li className="font-bold text-sm">sportssconnectzz@gmail.com</li>
+                            {/* <li className="font-bold text-sm">Location here</li> */}
                             <li className="font-bold text-sm">Support</li>
                         </ul>
                     </div>
