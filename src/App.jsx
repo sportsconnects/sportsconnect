@@ -13,6 +13,8 @@ import AthleteSettings from "./pages/athlete-dashboard/Settings";
 import AthleteMessages from "./pages/athlete-dashboard/Messages";
 import AthleteAI from "./pages/athlete-dashboard/AI";
 import AthleteOnboarding from "./pages/AthleteOnboarding"
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 import VerifyEmail from "./pages/VerifyEmail";
 
@@ -32,7 +34,8 @@ const sportsConnect = createBrowserRouter([
 { path: '/athletesignup', element: <AthleteSignUp />},
 { path: '/signin', element: <SignIn />},
 { path: '/verify-email', element: <VerifyEmail /> },
-
+{ path: '/forgot-password', element: <ForgotPassword /> },
+{ path: '/reset-password', element: <ResetPassword /> },
 // Athlete Dashboard routes 
 { path: '/athletedashboard', element: <ProtectedRoute role="athlete"><AthleteDashboard /> </ProtectedRoute>},
 { path: '/athleteexplore', element:<ProtectedRoute role="athlete"><AthleteExplore /> </ProtectedRoute>},

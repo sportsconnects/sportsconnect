@@ -203,3 +203,9 @@ export const getRecruiters = (params) => apiClient.get("/recruiters", { params }
 
 export const resendVerification = (email) =>
   apiClient.post("/auth/resend-verification", { email })
+
+export const forgotPassword = (email) =>
+  apiClient.post("/auth/forgot-password", { email })
+
+export const resetPassword = (token, password) =>
+  apiClient.post("/auth/reset-password", { token, password })

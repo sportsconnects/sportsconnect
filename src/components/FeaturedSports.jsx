@@ -1,84 +1,114 @@
-import React from 'react';
-import sc16 from "../assets/images/sc16.jpg";
-import sc17 from "../assets/images/sc17.jpg";
-import sc18 from "../assets/images/sc18.jpg";
-import sc19 from "../assets/images/sc19.jpg";
-import sc20 from "../assets/images/sc20.jpg";
-import sc21 from "../assets/images/sc21.jpg";
+import sc16 from "../assets/images/sc16.jpg"
+import sc17 from "../assets/images/sc17.jpg"
+import sc18 from "../assets/images/sc18.jpg"
+import sc19 from "../assets/images/sc19.jpg"
+import sc20 from "../assets/images/sc20.jpg"
+import sc21 from "../assets/images/sc21.jpg"
+
+const sportsData = [
+  { image: sc16, alt: "soccer",        name: "Soccer"       },
+  { image: sc17, alt: "basketball",    name: "Basketball"   },
+  { image: sc18, alt: "track & field", name: "Track & Field"},
+  { image: sc19, alt: "volleyball",    name: "Volleyball"   },
+  { image: sc20, alt: "tennis",        name: "Tennis"       },
+  { image: sc21, alt: "hockey",        name: "Hockey"       },
+]
 
 export default function FeaturedSports() {
-    // Array of sports data
-    const sportsData = [
-        { image: sc16, alt: "soccer", name: "Soccer" },
-        { image: sc17, alt: "basketball", name: "Basketball" },
-        { image: sc18, alt: "track&field", name: "Track & Field" },
-        { image: sc19, alt: "volleyball", name: "Volleyball" },
-        { image: sc20, alt: "tennis", name: "Tennis" },
-        { image: sc21, alt: "hockey", name: "Hockey" },
-    ];
+  return (
+    <section
+      className="bg-[#050A14] py-20 overflow-hidden"
+      style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif" }}
+    >
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;900&family=Bebas+Neue&display=swap');
 
-    return (
-        <div className="bg-white px-4 sm:px-6 py-12 text-center"
-        style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif" }}
-        >
-            <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap');`}</style>
-            <div className="max-w-7xl mx-auto">
-                <h2 className="font-bold text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-8">
-                    Featured Sports
-                </h2>
-            </div>
+        .hiw-label { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.12em; }
 
-            {/* Scrolling Container */}
-            <div className="overflow-hidden">
-                <div className="flex animate-scroll gap-6 sm:gap-8 lg:gap-12">
-                    {/* First set of sports */}
-                    {sportsData.map((sport, index) => (
-                        <div key={index} className="flex flex-col items-center flex-shrink-0">
-                            <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full flex items-center justify-center mb-3">
-                                <img 
-                                    src={sport.image} 
-                                    alt={sport.alt}
-                                    className="w-full h-full rounded-full object-cover"
-                                />
-                            </div>
-                            <span className="text-xs sm:text-sm md:text-base font-medium text-[#0057B8]">
-                                {sport.name}
-                            </span>
-                        </div>
-                    ))}
-                    
-                    {/* Duplicate set for seamless loop */}
-                    {sportsData.map((sport, index) => (
-                        <div key={`duplicate-${index}`} className="flex flex-col items-center flex-shrink-0">
-                            <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full flex items-center justify-center mb-3">
-                                <img 
-                                    src={sport.image} 
-                                    alt={sport.alt}
-                                    className="w-full h-full rounded-full object-cover"
-                                />
-                            </div>
-                            <span className="text-xs sm:text-sm md:text-base font-medium text-[#0057B8]">
-                                {sport.name}
-                            </span>
-                        </div>
-                    ))}
-                </div>
-            </div>
+        @keyframes marquee {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .marquee-track {
+          display: flex;
+          width: max-content;
+          animation: marquee 24s linear infinite;
+        }
+        .marquee-track:hover { animation-play-state: paused; }
 
-            <style jsx>{`
-                @keyframes scroll {
-                    0% {
-                        transform: translateX(0);
-                    }
-                    100% {
-                        transform: translateX(-50%);
-                    }
-                }
-                
-                .animate-scroll {
-                    animation: scroll 20s linear infinite;
-                }
-            `}</style>
+        .sport-ring {
+          position: relative;
+          border-radius: 50%;
+          padding: 3px;
+          background: linear-gradient(135deg, rgba(29,168,255,0.5), rgba(29,168,255,0.05));
+          transition: transform 0.3s;
+        }
+        .sport-ring:hover { transform: scale(1.08); }
+        .sport-ring:hover .sport-glow {
+          opacity: 1;
+        }
+        .sport-glow {
+          position: absolute;
+          inset: -4px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(29,168,255,0.25) 0%, transparent 70%);
+          opacity: 0;
+          transition: opacity 0.3s;
+          pointer-events: none;
+        }
+        .sport-inner {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          overflow: hidden;
+          background: #0d1929;
+        }
+      `}</style>
+
+      <div className="max-w-7xl mx-auto px-6 sm:px-10 mb-12 flex items-end justify-between">
+        <div>
+          <p className="text-[#1DA8FF] text-xs font-semibold tracking-[0.2em] uppercase mb-2">
+            Disciplines
+          </p>
+          <h2 className="hiw-label text-[clamp(2.2rem,5vw,4rem)] text-white leading-none">
+            Featured Sports
+          </h2>
         </div>
-    );
+        <p className="hidden sm:block text-[#8fa3be] text-sm max-w-xs text-right">
+          Ghana's athletes are ready to be discovered.
+        </p>
+      </div>
+
+      {/* Marquee */}
+      <div className="relative">
+        {/* Fade edges */}
+        <div className="absolute left-0 top-0 bottom-0 w-24 z-10 pointer-events-none"
+          style={{ background: "linear-gradient(to right, #050A14, transparent)" }} />
+        <div className="absolute right-0 top-0 bottom-0 w-24 z-10 pointer-events-none"
+          style={{ background: "linear-gradient(to left, #050A14, transparent)" }} />
+
+        <div className="marquee-track gap-8 px-8">
+          {[...sportsData, ...sportsData].map((sport, i) => (
+            <div key={i} className="flex flex-col items-center flex-shrink-0 mx-5">
+              <div className="sport-ring w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36">
+                <div className="sport-glow" />
+                <div className="sport-inner">
+                  <img
+                    src={sport.image}
+                    alt={sport.alt}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+              <span className="mt-3 text-sm font-semibold text-white tracking-wide">
+                {sport.name}
+              </span>
+              <span className="w-4 h-0.5 bg-[#1DA8FF] rounded mt-1.5 opacity-60" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+    </section>
+  )
 }
